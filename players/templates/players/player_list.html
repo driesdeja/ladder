@@ -1,0 +1,24 @@
+{% extends "players/base.html" %}
+{% block content %}
+    <table class="table text-left">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">First</th>
+            <th scope="col">Last</th>
+            <th scope="col">Contact Number</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for player in players %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ player.first_name }}</td>
+                <td>{{ player.last_name }}</td>
+                <td>{{ player.contact_number }}</td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+{% endblock content %}

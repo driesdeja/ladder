@@ -1,0 +1,38 @@
+{% extends 'players/base.html' %}
+
+{% block content %}
+    {% for ladder_round in ladder_rounds %}
+        <div class="container">
+            <p class="text-left font-weight-bold">Round - {{ ladder_round.ladder_round.date }}
+                status - {{ ladder_round.ladder_round.status }} </p>
+            <form action="{%  url 'ladder-draw' %}" method="POST">
+                {% csrf_token %}
+                <button class="button" type="submit">View Draw</button>
+            </form>
+        </div>
+
+        <table class="table text-left">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">First</th>
+                <th scope="col">Last</th>
+                <th scope="col">Contact Number</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for player in ladder_round.players %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ player.player.first_name }}</td>
+                    <td>{{ player.player.last_name }}</td>
+                    <td>{{ player.player.contact_number }}</td>
+                </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+
+    {% endfor ladder_rounds %}
+
+{% endblock content %}

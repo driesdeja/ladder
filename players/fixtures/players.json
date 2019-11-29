@@ -1,0 +1,23 @@
+[
+  {
+    "model": "players.player",
+    "pk": 1,
+    "fields": {
+      "first_name": "Blake",
+      "last_name": "Williams",
+      "contact_number" : "021329015",
+      "ranking" : "1"
+    }
+  },
+  {
+    "model": "players.player",
+    "pk": 2 ,
+    "fields": {
+      "first_name": "Brent",
+      "last_name": "Hooper",
+      "contact_number" : "0212222222",
+      "ranking" : "2"
+    }
+  }
+
+]

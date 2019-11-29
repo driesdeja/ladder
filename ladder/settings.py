@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'players.apps.PlayersConfig',
+    'round.apps.RoundConfig',
 ]
 
 MIDDLEWARE = [
