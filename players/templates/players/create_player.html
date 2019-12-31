@@ -1,0 +1,8 @@
+{% extends "players/base.html" %}
+{% block content %}
+    <form method="POST" action="{% url 'create-player' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" class="btn" value="Add Player"/>
+    </form>
+{% endblock content %}

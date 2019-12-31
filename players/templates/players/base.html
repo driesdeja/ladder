@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Bootstrap Example</title>
+    <title>Ladder App</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
@@ -21,7 +21,7 @@
             <ul class="nav navbar-nav">
                 <li class="active"><a href="#">Home</a></li>
                 <li><a href="{% url 'list-players' %}">Players</a></li>
-                <li><a href="{% url 'list-rounds' %}">Rounds</a></li>
+                <li><a href="{% url 'ladder-admin' %}">Ladder Administration</a></li>
                 <li><a href="#">TBC</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
@@ -31,10 +31,10 @@
     </nav>
 
     <div class="container text-center">
-        <div class="row content">
-            {% block content %}
-            {% endblock content %}
-        </div>
+
+        {% block content %}
+        {% endblock content %}
+
     </div>
 
     <footer class="container-fluid text-center">
@@ -42,6 +42,10 @@
     </footer>
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script
+        src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+        integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+        crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
 </body>
 </html>

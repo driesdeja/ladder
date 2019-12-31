@@ -1,0 +1,47 @@
+{% extends 'players/base.html' %}
+
+{% block content %}
+    <div class="container">
+        <ul class="progressbar">
+            <li>Create Round</li>
+            <li class="active"><a href="{% url 'manage-players-in-round' %}?round={{ ladder_round.id }}">Add Players to round</a></li>
+            <li><a href="{% url 'round-draw' ladder_round.id %}">Finalise Draw</a></li>
+            <li>Capture Results</li>
+        </ul>
+    </div>
+    <h1>Round Detail - {{ ladder_round.date }}</h1>
+
+    <p>Status: {{ ladder_round.get_status_display }}</p>
+    <p>End Date: {{ ladder_round.end_date }}</p>
+    <div class="col-md-3">
+        <p></p>
+        <p></p>
+
+    </div>
+    <div class="col-md-9">
+    <p class="text-left font-weight-bold">Players in the round</p>
+        <table class="table text-left">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">First</th>
+                <th scope="col">Last</th>
+                <th scope="col">Contact Number</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for player in players %}
+                <tr>
+                    <td>{{ player.ranking }}</td>
+                    <td>{{ player.first_name }}</td>
+                    <td>{{ player.last_name }}</td>
+                    <td>{{ player.contact_number }}</td>
+                </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+
+    </div>
+
+{% endblock content %}

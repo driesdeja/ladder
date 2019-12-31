@@ -1,0 +1,94 @@
+{% extends 'players/base.html' %}
+
+{% block content %}
+    <div class="container">
+        <ul class="progressbar">
+            <li>Create Round</li>
+            <li class="active">Add Players to round</li>
+            <li><a href="{% url 'round-draw' ladder_round.id %}">Finalise Draw</a></li>
+            <li><a href="{% url 'capture-results' ladder_round.id %}">Capture Results</a></li>
+        </ul>
+    </div>
+    <p>Add or Remove players from the round - {{ ladder_round.start_date }}
+
+    <p>Status: {{ ladder_round.get_status_display }}</p>
+    <p>End Date: {{ ladder_round.end_date }}</p>
+
+    <div class="row">
+        <form method="post" action="{% url 'add-players-to-round' %}">
+            <div class="col-md-6">
+                Players not in round
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col" class="text-center">Ladder Ranking</th>
+                        <th scope="col" class="text-center">First Name</th>
+                        <th scope="col" class="text-center">Last Name</th>
+                        <th scope="col" class="text-center">Add to Round</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    {% csrf_token %}
+                    {% for player_not_in_round in players_not_in_round %}
+                        <tr>
+                            <td>{{ player_not_in_round.ranking }}</td>
+                            <td>{{ player_not_in_round.first_name }}</td>
+                            <td>{{ player_not_in_round.last_name }}</td>
+                            <td>
+                                {% if ladder_round.status < 2 %}
+                                    <input name='add_to_round' id="player{{ player_not_in_round.id }}"
+                                           value={{ player_not_in_round.id }} type="checkbox"
+                                           onclick="this.form.submit()">
+                                {% else %}
+                                    <span class="warning">Round Closed</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor players_not_in_round %}
+
+                    </tbody>
+                </table>
+
+            </div>
+
+            <div class="col-md-6">
+                Number of players in round:
+                {% if players_in_round|length|divisibleby:2 %}
+                    <span class="even">{{ players_in_round|length }}</span>
+                {% else %}
+                    <span class="odd">{{ players_in_round|length }}</span>
+                {% endif %}
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col" class="text-center">Rank in Round</th>
+                        <th scope="col" class="text-center">First Name</th>
+                        <th scope="col" class="text-center">Last Name</th>
+                        <th scope="col" class="text-center">Remove from Ladder</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for player_in_round in players_in_round %}
+                        <tr>
+                            <td>{{ player_in_round.ranking }}</td>
+                            <td>{{ player_in_round.first_name }}</td>
+                            <td>{{ player_in_round.last_name }}</td>
+                            <td>
+                                {% if ladder_round.status < 2 %}
+                                    <input name='remove_from_round' id="player{{ player_in_round.id }}"
+                                           value={{ player_in_round.id }} type="checkbox" onclick="this.form.submit()">
+                                {% else %}
+                                    <span class="warning">Round Closed</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor players_not_in_round %}
+                    </tbody>
+                </table>
+            </div>
+            <input type="hidden" name="ladder_round" value="{{ ladder_round.id }}"/>
+        </form>
+    </div>
+
+{% endblock content %}

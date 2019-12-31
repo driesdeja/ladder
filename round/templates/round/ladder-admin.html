@@ -1,0 +1,41 @@
+{% extends 'players/base.html' %}
+
+{% block content %}
+    <h1>Ladder Admin</h1>
+    <div class="col-md-3">
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="Save">
+        </form>
+    </div>
+    <div class="col-md-9">
+        <table class="table text-left">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Title</th>
+                <th scope="col">Start Date</th>
+                <th scope="col">End Date</th>
+                <th scope="col">Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for ladder in ladders %}
+
+                <tr>
+
+                    <td>{{ forloop.counter }}</td>
+                    <td><a href="{% url 'ladder-detail' ladder.id %}">{{ ladder.title }}</a></td>
+                    <td>{{ ladder.start_date }}</td>
+                    <td>{{ ladder.end_date }}</td>
+                    <td>{{ ladder.get_status_display }}</td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}

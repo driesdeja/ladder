@@ -1,0 +1,54 @@
+{% extends 'players/base.html' %}
+
+{% block content %}
+    <h1>Ladder Detail - {{ ladder.title }}</h1>
+    <p>Start Date: {{ ladder.start_date }}</p>
+    <p>End Date: {{ ladder.end_date }}</p>
+    <div class="col-md-3">
+    <h2>Add round to ladder:</h2>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="fieldWrapper">
+                {{ form.start_date.errors }}
+                <label for="{{ form.start_date.id_for_label }}">Start Date</label>
+                {{ form.start_date }}
+            </div>
+            <div class="fieldWrapper">
+                {{ form.end_date.errors }}
+                <label for="{{ form.end_date.id_for_label }}">End Date</label>
+                {{ form.end_date }}
+            </div>
+            <input type="hidden" name ="ladder" id="id_ladder" value="{{ ladder.id }}"/>
+
+            <input type="submit" value="Save">
+        </form>
+    </div>
+    <div class="col-md-9">
+        <table class="table text-left">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Start Date</th>
+                <th scope="col">Completed Date</th>
+                <th scope="col">Round Status</th>
+                <th scope="col">&nbsp;</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for round in rounds %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ round.start_date }}</td>
+                    <td>{{ round.end_date }}</td>
+                    <td>{{ round.get_status_display }}</td>
+                    <td><a href="{% url 'round-detail' round.id %}">View Details</a></td>
+                </tr>
+            {% endfor round %}
+
+            </tbody>
+        </table>
+
+    </div>
+
+{% endblock content %}
