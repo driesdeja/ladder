@@ -1,6 +1,6 @@
 import datetime
 from django import forms
-from .models import Ladder, LadderRound
+from .models import Ladder, LadderRound, Match
 
 
 class LadderForm(forms.ModelForm):
@@ -15,7 +15,6 @@ class LadderForm(forms.ModelForm):
 
 
 class LadderRoundForm(forms.ModelForm):
-
     class Meta:
         model = LadderRound
         fields = [
@@ -37,3 +36,21 @@ class LadderRoundForm(forms.ModelForm):
         for ladder_round in ladder_rounds:
             print(ladder_round)
         return start_date
+
+
+class MatchForm(forms.ModelForm):
+
+    class Meta:
+        model = Match
+        fields = [
+            'id',
+            'games_for_player1',
+            'games_for_player2',
+            'result'
+        ]
+
+        def clean_result(self, *args, **kwargs):
+            games_for_player1 = self.cleaned_data.get('games_for_player1')
+            games_for_player2 = self.cleaned_data.get('games_for_player2')
+            result = self.data.get('result')
+            return result

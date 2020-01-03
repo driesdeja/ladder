@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.contrib import messages
+from django.forms.models import model_to_dict
 from django.http import HttpResponse
 from .models import PlayersInLadderRound
 from .models import LadderRound
@@ -8,7 +9,7 @@ from .models import Ladder
 from .models import Match
 from .models import MatchResult
 from datetime import date
-from .forms import LadderForm, LadderRoundForm
+from .forms import LadderForm, LadderRoundForm, MatchForm
 from players.models import Player
 from . import utils
 
@@ -176,9 +177,54 @@ def close_draw(request, round_id):
 
 def capture_results(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
+    if request.POST:
+        form_matches = request.POST.getlist("match")
+        for form_match in form_matches:
+            match = Match.objects.get(id=form_match)
+            if request.POST.get('match[' + form_match + '][player1-games]'):
+                match.games_for_player1 = int(request.POST.get('match[' + form_match + '][player1-games]'))
+            if request.POST.get('match[' + form_match + '][player2-games]'):
+                match.games_for_player2 = int(request.POST.get('match[' + form_match + '][player2-games]'))
+            if request.POST.get('match[' + form_match + '][player1-defaulted]'):
+                match.result = match.PLAYER_1_DEFAULTED
+            if request.POST.get('match[' + form_match + '][player2-defaulted]'):
+                match.result = match.PLAYER_2_DEFAULTED
+            if request.POST.get('match[' + form_match + '][match-cancelled]'):
+                match.result = match.CANCELLED
+            errors = utils.validate_match_results(match)
+            if len(errors) < 1:
+                if match.games_for_player1 == 3:
+                    match.result = match.PLAYER_1_WON
+                elif match.games_for_player2 == 3:
+                    match.result = match.PLAYER_2_WON
+                if match.result == match.PLAYER_1_DEFAULTED:
+                    match.games_for_player2 = 3
+                if match.result == match.PLAYER_2_DEFAULTED:
+                    match.games_for_player1 = 3
+                print(match)
+                match.save()
+            else:
+                for error in errors:
+                    messages.error(request, error)
+
     matches = Match.objects.filter(ladder_round=ladder_round)
     context = {
         'ladder_round': ladder_round,
         'matches': matches
     }
     return render(request, 'round/capture-results.html', context)
+
+
+def edit_match(request, match_id):
+    match = Match.objects.get(id=match_id)
+    if request.POST:
+        form = MatchForm(request.POST)
+        if form.is_valid():
+            form.save()
+    else:
+        form = MatchForm(initial=model_to_dict(match))
+    context = {
+        'match': match,
+        'form': form
+    }
+    return render(request, 'round/edit-match.html', context)

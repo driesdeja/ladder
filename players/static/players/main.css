@@ -81,7 +81,10 @@ footer {
     margin: auto;
 
 }
-
+.error {
+    color: red;
+    font-weight: bold;
+}
 .warning {
     color: orange;
     font-weight: bold;

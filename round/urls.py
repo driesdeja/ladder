@@ -11,6 +11,6 @@ urlpatterns = [
     path('ladder/round/add-players-to-round', views.add_players_to_round, name='add-players-to-round'),
     path('ladder/round/<int:round_id>/draw', views.round_draw, name='round-draw'),
     path('ladder/round/<int:round_id>/matches', views.close_draw, name='close-draw'),
-    path('ladder/round/<int:round_id>/results', views.capture_results, name='capture-results')
-
+    path('ladder/round/<int:round_id>/results', views.capture_results, name='capture-results'),
+    path('ladder/round/match/<int:match_id>', views.edit_match, name='edit-match')
 ]

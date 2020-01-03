@@ -21,45 +21,87 @@
                 {% endfor %}
             </ul>
         {% endif %}
-        <table class="table text-center">
-            <thead>
-            <tr>
-                <th class="text-center">Player 1</th>
-                <th>Games for Player 1</th>
-                <th>Player 1 defaulted</th>
-                <th></th>
-                <th class="text-center">Player 2</th>
-                <th>Games for Player 2</th>
-                <th>Player2 defaulted</th>
-                <th>Game Cancelled</th>
-                <th>Submit</th>
-            </tr>
-            </thead>
-            <tbody>
-            <input type="hidden" name="number-of-matches" value="{{ matches|length }}"/>
-            {% for match in matches %}
-                <form method="post" action="{% url 'capture-results' ladder_round.id %}">
+        <form method="post" action="{% url 'capture-results' ladder_round.id %}">
+        {% csrf_token %}
+            <table class="table text-center">
+                <thead>
+                <tr>
+                    <th class="text-center">Player 1</th>
+                    <th>Games for Player 1</th>
+                    <th>Player 1 defaulted</th>
+                    <th></th>
+                    <th class="text-center">Player 2</th>
+                    <th>Games for Player 2</th>
+                    <th>Player2 defaulted</th>
+                    <th>Game Cancelled</th>
+                    <th>Submit</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                <input type="hidden" name="number-of-matches" value="{{ matches|length }}"/>
+                {% for match in matches %}
+
                     <tr>
-                        <input type="hidden" name="{{ match.id }}" value="{{ match.player1.id }}"/>
+                        <input type="hidden" name="match" value="{{ match.id }}"/>
                         <td>{{ match.player1.first_name }} {{ match.player1.last_name }} ({{ match.player1.ranking }})
                         </td>
                         <td>
-                            <input type="text" name="player1-games"/>
+                            {% if match.result == match.NOT_PLAYED %}
+                                <input type="text" name="match[{{ match.id }}][player1-games]"/>
+                            {% else %}
+                                {{ match.games_for_player1 }}
+                            {% endif %}
                         </td>
-                        <td><input type="checkbox" name="player1-defaulted"></td>
+                        <td>
+                            {% if match.result == match.PLAYER_1_DEFAULTED %}
+                                {{ match.player1.first_name }} {{ match.player1.last_name }} Defaulted
+                            {% elif match.result == match.NOT_PLAYED %}
+                                <input type="checkbox" name="match[{{ match.id }}][player1-defaulted]">
+                            {% elif match.result == match.PLAYER_1_DEFAULTED %}
+                                <input type="checkbox" checked readonly/>
+                            {% endif %}
+                        </td>
                         <td>VS</td>
                         <td>{{ match.player2.first_name }} {{ match.player2.last_name }} ({{ match.player2.ranking }})
                         </td>
                         <td>
-                            <input type="text" name="player2-games">
+                            {% if match.result == match.NOT_PLAYED %}
+                                <input type="text" name="match[{{ match.id }}][player2-games]"/>
+                            {% else %}
+                                {{ match.games_for_player2 }}
+                            {% endif %}
                         </td>
-                        <td><input type="checkbox" name="player2-defaulted"></td>
-                        <td><input type="checkbox" name="match-cancelled"</td>
-                        <td><input type="submit" value="Capture"></td>
+                       <td>
+                            {% if match.result == match.PLAYER_2_DEFAULTED %}
+                                {{ match.player2.first_name }} {{ match.player2.last_name }} Defaulted
+                            {% elif match.result == match.NOT_PLAYED %}
+                                <input type="checkbox" name="match[{{ match.id }}][player2-defaulted]">
+                            {% elif match.result == match.PLAYER_2_DEFAULTED %}
+                                <input type="checkbox" checked readonly/>
+                            {% endif %}
+                        </td>
+                        <td>{% if match.result == match.CANCELLED %}
+                                <input type="checkbox" checked readonly/>
+                            {% elif match.result != match.NOT_PLAYED %}
+
+                            {% else %}
+                                <input type="checkbox" name="match[{{ match.id }}][match-cancelled]">
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if match.result != match.NOT_PLAYED %}
+                                <a href="{% url 'edit-match' match.id %}">Edit</a>
+                            {% endif %}
+                        </td>
                     </tr>
-                </form>
-            {% endfor matches %}
-            </tbody>
-        </table>
+
+
+                {% endfor matches %}
+
+                </tbody>
+            </table>
+            <input type="submit" value="Capture">
+        </form>
     </div>
 {% endblock content %}
