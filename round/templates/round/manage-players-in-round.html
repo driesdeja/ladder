@@ -15,7 +15,7 @@
     <p>End Date: {{ ladder_round.end_date }}</p>
 
     <div class="row">
-        <form method="post" action="{% url 'add-players-to-round' %}">
+        <form method="post" action="{% url 'add-players-to-round' ladder_round.id %}">
             <div class="col-md-6">
                 Players not in round
                 <table class="table">
@@ -41,7 +41,7 @@
                                            value={{ player_not_in_round.id }} type="checkbox"
                                            onclick="this.form.submit()">
                                 {% else %}
-                                    <span class="warning">Round Closed</span>
+                                    <span class="warning">{{ ladder_round.get_status_display }}</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -79,7 +79,7 @@
                                     <input name='remove_from_round' id="player{{ player_in_round.id }}"
                                            value={{ player_in_round.id }} type="checkbox" onclick="this.form.submit()">
                                 {% else %}
-                                    <span class="warning">Round Closed</span>
+                                    <span class="warning">{{ ladder_round.get_status_display }}</span>
                                 {% endif %}
                             </td>
                         </tr>

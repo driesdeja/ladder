@@ -1,0 +1,37 @@
+{% extends 'players/base.html' %}
+
+{% block content %}
+
+    <div class="container">
+
+        <form method="post" action="{% url 'update_ranking' ladder_round.id %}">
+            {% csrf_token %}
+            <input type="submit" name="submit_to_master" value="Update Master List"/>
+        </form>
+        <table>
+            <thead>
+            <tr>
+                <td>
+                    Player
+                </td>
+                <td>
+                    Old Rank
+                </td>
+                <td>
+                    Change in Rank
+                </td>
+            </tr>
+            </thead>
+            <tbody>
+            {% for ranking in new_ranking_list %}
+                <tr>
+                    <td>{{ ranking.player_name }}</td>
+                    <td>{{ ranking.player_current_ranking }}</td>
+                    <td>{{ ranking.player_ranking_change }}</td>
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}

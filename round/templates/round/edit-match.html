@@ -2,15 +2,29 @@
 
 {% block content %}
     <div class="container">
-
-            <form method="post" action="{% url 'edit-match' match.id %}">
-                {% csrf_token %}
-                {{ form.as_table }}
-                <tr>
-                    <td><input type="submit" value="Submit"/></td>
-                </tr>
-
-            </form>
+        <ul class="progressbar">
+            <li><a href="{% url 'ladder-detail' ladder_round.ladder.id %}">Create Round</a></li>
+            <li><a href="{% url 'manage-players-in-round' ladder_round.id %}">Add Players to round</a></li>
+            <li class="active"><a href="{% url 'round-draw' ladder_round.id %}">Finalise Draw</a></li>
+            <li><a href="{% url 'capture-results' ladder_round.id %}">Capture Results</a></li>
+        </ul>
+    </div>
+    <div class="container">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        <p>{{ match.player1.first_name }} {{ match.player1.last_name }}
+            vs {{ match.player2.first_name }} {{ match.player2.last_name }}</p>
+        <form method="post" action="{% url 'edit-match' ladder_round.id match.id %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input class="btn" type="submit" name="save" value="Save"/>
+            <input class="btn" type="submit" name="cancel" value="Cancel"/>
+        </form>
 
     </div>
 {% endblock content %}

@@ -14,7 +14,6 @@ def list_players(request):
 
 
 def edit_player(request, player_id):
-
     form = PlayerForm(request.POST or None)
     player = Player.objects.get(id=player_id)
     if request.POST:
@@ -57,10 +56,21 @@ def create_player(request):
             new_player.first_name = form.cleaned_data.get('first_name')
             new_player.last_name = form.cleaned_data.get('last_name')
             new_player.contact_number = form.cleaned_data.get('contact_number')
-            #new_player.save()
+            # new_player.save()
             update_ladder_ranking(new_player, 'add', form.cleaned_data.get('ranking'))
             form = PlayerForm()
     context = {
         'form': form
     }
     return render(request, 'players/create_player.html', context)
+
+
+def reset_rankings(request):
+    players = Player.objects.all().order_by('ranking')
+    for idx, player in enumerate(players):
+        # old_ranking = player.ranking
+        player.ranking = idx + 1
+        # print(str(idx) + str(player) + ' ' + str(old_ranking) + ' ' + str(player.ranking))
+        player.save()
+
+    return redirect(list_players)

@@ -42,7 +42,15 @@
                     <td>{{ round.start_date }}</td>
                     <td>{{ round.end_date }}</td>
                     <td>{{ round.get_status_display }}</td>
-                    <td><a href="{% url 'round-detail' round.id %}">View Details</a></td>
+                    <td>
+                        {% if round.status == round.COMPLETED %}
+                            <a href="{% url 'view-results' round.id %}">View Results</a>
+                        {% elif round.status == round.CANCELLED %}
+                            Round Cancelled - Nothing to see here
+                        {% else %}
+                            <a href="{% url 'round-detail' round.id %}">Manage Round</a>
+                        {% endif %}
+                    </td>
                 </tr>
             {% endfor round %}
 

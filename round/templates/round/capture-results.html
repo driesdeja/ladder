@@ -4,7 +4,7 @@
     <div class="container">
         <ul class="progressbar">
             <li><a href="{% url 'ladder-detail' ladder_round.ladder.id %}">Create Round</a></li>
-            <li><a href="{% url 'manage-players-in-round' %}?round={{ ladder_round.id }}">Add Players to round</a></li>
+            <li><a href="{% url 'manage-players-in-round' ladder_round.id %}">Add Players to round</a></li>
             <li><a href="{% url 'round-draw' ladder_round.id %}">Finalise Draw</a></li>
             <li class="active">Capture Results</li>
         </ul>
@@ -22,7 +22,7 @@
             </ul>
         {% endif %}
         <form method="post" action="{% url 'capture-results' ladder_round.id %}">
-        {% csrf_token %}
+            {% csrf_token %}
             <table class="table text-center">
                 <thead>
                 <tr>
@@ -72,7 +72,7 @@
                                 {{ match.games_for_player2 }}
                             {% endif %}
                         </td>
-                       <td>
+                        <td>
                             {% if match.result == match.PLAYER_2_DEFAULTED %}
                                 {{ match.player2.first_name }} {{ match.player2.last_name }} Defaulted
                             {% elif match.result == match.NOT_PLAYED %}
@@ -82,16 +82,20 @@
                             {% endif %}
                         </td>
                         <td>{% if match.result == match.CANCELLED %}
-                                <input type="checkbox" checked readonly/>
-                            {% elif match.result != match.NOT_PLAYED %}
+                            <input type="checkbox" checked readonly/>
+                        {% elif match.result != match.NOT_PLAYED %}
 
-                            {% else %}
-                                <input type="checkbox" name="match[{{ match.id }}][match-cancelled]">
-                            {% endif %}
+                        {% else %}
+                            <input type="checkbox" name="match[{{ match.id }}][match-cancelled]">
+                        {% endif %}
                         </td>
                         <td>
-                            {% if match.result != match.NOT_PLAYED %}
-                                <a href="{% url 'edit-match' match.id %}">Edit</a>
+                            {% if ladder_round.status != ladder_round.COMPLETED and ladder_round.status != ladder_round.CANCELLED %}
+                                {% if match.result != match.NOT_PLAYED %}
+                                    <a href="{% url 'edit-match' ladder_round.id match.id %}">Edit</a>
+                                {% endif %}
+                            {% else %}
+                                {{ ladder_round.get_status_display }}
                             {% endif %}
                         </td>
                     </tr>
@@ -101,7 +105,14 @@
 
                 </tbody>
             </table>
-            <input type="submit" value="Capture">
+            {% if ladder_round.status != ladder_round.COMPLETED and ladder_round.status != ladder_round.CANCELLED %}
+                {% if all_matches_captured %}
+                    <input class="btn" type="submit" name="update_ranking" value="Submit to Update Ranking">
+                {% else %}
+                    <input class="btn" type="submit" name="save_results" value="Save Results">
+                {% endif %}
+            {% endif %}
+
         </form>
     </div>
 {% endblock content %}

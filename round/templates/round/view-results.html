@@ -1,0 +1,45 @@
+{% extends 'players/base.html' %}
+
+{% block content %}
+    <div class="container">
+        <ul class="progressbar">
+            <li><a href="{% url 'ladder-detail' ladder_round.ladder.id %}">Create Round</a></li>
+            <li><a href="{% url 'manage-players-in-round' ladder_round.id %}">Add Players to round</a></li>
+            <li><a href="{% url 'round-draw' ladder_round.id %}">Finalise Draw</a></li>
+            <li class="active">Capture Results</li>
+        </ul>
+    </div>
+    <div class="container">
+        <table>
+            <thead>
+                <tr>
+                    <th>
+                        Player 1
+                    </th>
+                    <th>
+                        Player 2
+                    </th>
+                    <th>
+                        Result
+                    </th>
+                </tr>
+            </thead>
+        {% for match in matches %}
+            <tr>
+                <td>
+                    {{ match.player1.first_name }} {{ match.player1.last_name }}
+                </td>
+                <td>
+                    {{ match.player2.first_name }} {{ match.player2.last_name }}
+                </td>
+                <td>
+                    {{ match.get_result_display }} ({{ match.games_for_player1 }} - {{ match.games_for_player2 }})
+                </td>
+            </tr>
+
+        {% endfor %}
+        </table>
+    </div>
+
+
+{% endblock content %}

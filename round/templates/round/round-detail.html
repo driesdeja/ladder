@@ -4,7 +4,7 @@
     <div class="container">
         <ul class="progressbar">
             <li>Create Round</li>
-            <li class="active"><a href="{% url 'manage-players-in-round' %}?round={{ ladder_round.id }}">Add Players to round</a></li>
+            <li class="active"><a href="{% url 'manage-players-in-round' ladder_round.id %}">Add Players to round</a></li>
             <li><a href="{% url 'round-draw' ladder_round.id %}">Finalise Draw</a></li>
             <li>Capture Results</li>
         </ul>
