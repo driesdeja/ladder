@@ -1,0 +1,30 @@
+{% extends 'players/base.html' %}
+
+{% block content %}
+
+    {% for ladder in ladders %}
+        {{ ladder.title }}
+            <table class="table text-left">
+        <thead>
+        <tr>
+            <th scope="col">Rank</th>
+            <th scope="col">First</th>
+            <th scope="col">Last</th>
+            <th scope="col">Contact Number</th>
+            <th scope="col">Edit</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for player in players %}
+            <tr id="{{ player.id }}">
+                <td>{{ player.ranking }}</td>
+                <td>{{ player.first_name }}</td>
+                <td>{{ player.last_name }}</td>
+                <td>{{ player.contact_number }}</td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+    {% endfor %}
+{% endblock content %}

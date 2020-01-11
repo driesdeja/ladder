@@ -284,3 +284,23 @@ def update_players_ranking(request, round_id):
         'ladder_round': ladder_round
     }
     return render(request, 'round/update_players_ranking.html', context)
+
+
+def ladder_overview(request):
+    ladders = Ladder.objects.filter(status=Ladder.OPEN)
+    for ladder in ladders:
+        ladder_rounds = LadderRound.objects.filter(ladder=ladder)
+        for ladder_round in ladder_rounds:
+            if ladder_round.status == ladder_round.COMPLETED:
+                matches_in_round = Match.objects.filter(ladder_round=ladder_round)
+                print(str(ladder_round.start_date))
+                for match in matches_in_round:
+                    print(match.games_for_player1)
+                    print(match.games_for_player2)
+
+    players = Player.objects.all().order_by('ranking') 
+    context = {
+        'ladders': ladders,
+        'players': players
+    }
+    return render(request, 'round/ladder-overview.html', context)
