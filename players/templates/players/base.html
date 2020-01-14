@@ -19,19 +19,33 @@
         </div>
         <div class="collapse navbar-collapse" id="myNavbar">
             <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Home</a></li>
+                <li class="active"><a href="{% url 'ladder-overview' %}">Home</a></li>
                 <li><a href="{% url 'list-players' %}">Players</a></li>
-                <li><a href="{% url 'ladder-admin' %}">Ladder Administration</a></li>
-                <li><a href="#">TBC</a></li>
+                {% if perms.round.can_administrate_ladder %}
+                    <li><a href="{% url 'ladder-admin' %}">Ladder Administration</a></li>
+                {% endif %}
             </ul>
             <ul class="nav navbar-nav navbar-right">
-                <li><a href="#"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+                {% if user.is_authenticated %}
+                    <li class="bg-light">{{ user.first_name|upper }}</li>
+                    <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+
+                {% else %}
+                    <li><a href="{% url 'login' %}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+                    <li><a href="{% url 'register' %}">Register</a></li>
+                {% endif %}
             </ul>
         </div>
     </nav>
 
-    <div class="container text-center">
-
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
         {% block content %}
         {% endblock content %}
 

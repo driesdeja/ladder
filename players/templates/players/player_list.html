@@ -18,8 +18,20 @@
                 <td>{{ player.ranking }}</td>
                 <td>{{ player.first_name }}</td>
                 <td>{{ player.last_name }}</td>
-                <td>{{ player.contact_number }}</td>
-                <td><a href="{% url 'edit-player' player.id %}">Edit</a> </td>
+                <td>
+                    {% if user.is_authenticated %}
+                        {{ player.contact_number }}
+                    {% else %}
+                        ###########
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'edit-player' player.id %}">Edit</a>
+                    {% else %}
+                        #######
+                    {% endif %}
+                </td>
             </tr>
         {% endfor %}
 

@@ -101,8 +101,8 @@ def manage_players_in_round(request, round_id):
     return render(request, 'round/manage-players-in-round.html', context)
 
 
-def add_players_to_round(request, ladder_id):
-    ladder_round = LadderRound.objects.get(id=ladder_id)
+def add_players_to_round(request, round_id):
+    ladder_round = LadderRound.objects.get(id=round_id)
 
     if request.POST.get('add_to_round'):
         add_player_to_round = PlayersInLadderRound()

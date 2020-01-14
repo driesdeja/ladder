@@ -23,6 +23,11 @@ class Ladder(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
     status = models.IntegerField(choices=Status, default=CREATED)
 
+    class Meta:
+        permissions = [
+            ('can_administrate_ladder', 'Can administrate the ladder')
+        ]
+
     def __str__(self):
         return self.title
 

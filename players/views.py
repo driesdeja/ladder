@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
 from .models import Player
 from .forms import PlayerForm
 from .utils import update_ladder_ranking
@@ -13,6 +14,7 @@ def list_players(request):
     return render(request, 'players/player_list.html', context)
 
 
+@login_required()
 def edit_player(request, player_id):
     form = PlayerForm(request.POST or None)
     player = Player.objects.get(id=player_id)
@@ -48,6 +50,7 @@ def edit_player(request, player_id):
     return render(request, 'players/edit_player.html', context)
 
 
+@login_required()
 def create_player(request):
     form = PlayerForm(request.POST or None)
     if request.POST:
@@ -65,6 +68,7 @@ def create_player(request):
     return render(request, 'players/create_player.html', context)
 
 
+@login_required()
 def reset_rankings(request):
     players = Player.objects.all().order_by('ranking')
     for idx, player in enumerate(players):
