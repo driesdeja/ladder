@@ -1,7 +1,9 @@
 {% extends "players/base.html" %}
 {% block content %}
+    {% if user.is_authenticated %}
     <a href="{% url 'create-player' %}">Add Player</a>
     <a href="{% url 'reset-rankings' %}">Reset Ranking</a>
+    {% endif %}
     <table class="table text-left">
         <thead>
         <tr>

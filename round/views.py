@@ -12,7 +12,8 @@ from .models import MatchResult
 from datetime import date
 from .forms import LadderForm, LadderRoundForm, MatchForm
 from players.models import Player
-from .utils import validate_match_results, get_players_in_round, get_players_not_in_round, setup_matches_for_draw
+from .utils import validate_match_results, get_players_in_round, get_players_not_in_round, setup_matches_for_draw, \
+    ensure_player_not_already_in_round
 from players.utils import calculate_change_in_ranking, update_ladder_ranking
 from players.views import list_players
 
@@ -58,12 +59,12 @@ def ladder_detail(request, ladder_id):
     form = LadderRoundForm(request.POST or None)
 
     ladder = Ladder.objects.get(id=ladder_id)
-    rounds = LadderRound.objects.filter(ladder=ladder).order_by('-start_date')
+    rounds = LadderRound.objects.filter(ladder=ladder).order_by('start_date')
     if request.POST:
         print("Form posted")
-    if form.is_valid():
-        form.save()
-        form = LadderRoundForm()
+        if form.is_valid():
+            form.save()
+            form = LadderRoundForm()
     context = {
         'form': form,
         'ladder': ladder,
@@ -104,15 +105,24 @@ def manage_players_in_round(request, round_id):
 def add_players_to_round(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
 
-    if request.POST.get('add_to_round'):
-        add_player_to_round = PlayersInLadderRound()
-        add_player_to_round.player = Player.objects.get(id=request.POST.get('add_to_round'))
-        add_player_to_round.ladder_round = LadderRound.objects.get(id=request.POST.get('ladder_round'))
-        add_player_to_round.save()
+    if request.POST.get('add_to_round[]'):
+        players_to_add = request.POST.getlist('add_to_round[]')
+        for player in players_to_add:
+            add_player_to_round = PlayersInLadderRound()
+            add_player_to_round.player = Player.objects.get(id=player)
+            # It is important to ensure that only a single instance of a player is ever in a ladder round.
+            # this should never happen but it prudent to check before inserting duplicates.
+            ensure_player_not_already_in_round(round_id, add_player_to_round.player)
+            add_player_to_round.ladder_round = LadderRound.objects.get(id=round_id)
+            add_player_to_round.save()
 
-    if request.POST.get('remove_from_round'):
-        player_to_remove = PlayersInLadderRound.objects.get(player=request.POST.get('remove_from_round'))
-        player_to_remove.delete()
+    if request.POST.get('remove_from_round[]'):
+        players_to_remove = request.POST.getlist('remove_from_round[]')
+        for player in players_to_remove:
+            print(str(player))
+            players_to_remove = PlayersInLadderRound.objects.filter(player=player)
+            for player_to_remove in players_to_remove:
+                player_to_remove.delete()
 
     players_in_round = get_players_in_round(ladder_round)
     players_not_in_round = get_players_not_in_round(players_in_round)
@@ -165,7 +175,7 @@ def close_draw(request, round_id):
                     match.ladder_round = ladder_round
                     match.match_result = 0  # not played
                     match.save()
-                    print(match)
+                return redirect(capture_results, ladder_round.id)
             else:
                 messages.warning(request, 'The round is not open for changes')
     players = get_players_in_round(ladder_round)
@@ -180,38 +190,47 @@ def close_draw(request, round_id):
 
 def capture_results(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
-    if request.POST:
-        if request.POST.get('save_results'):
-            form_matches = request.POST.getlist("match")
-            for form_match in form_matches:
-                match = Match.objects.get(id=form_match)
-                if request.POST.get('match[' + form_match + '][player1-games]'):
-                    match.games_for_player1 = int(request.POST.get('match[' + form_match + '][player1-games]'))
-                if request.POST.get('match[' + form_match + '][player2-games]'):
-                    match.games_for_player2 = int(request.POST.get('match[' + form_match + '][player2-games]'))
-                if request.POST.get('match[' + form_match + '][player1-defaulted]'):
-                    match.result = match.PLAYER_1_DEFAULTED
-                if request.POST.get('match[' + form_match + '][player2-defaulted]'):
-                    match.result = match.PLAYER_2_DEFAULTED
-                if request.POST.get('match[' + form_match + '][match-cancelled]'):
-                    match.result = match.CANCELLED
-                errors = validate_match_results(match)
-                if len(errors) < 1:
-                    if match.games_for_player1 == 3:
-                        match.result = match.PLAYER_1_WON
-                    elif match.games_for_player2 == 3:
-                        match.result = match.PLAYER_2_WON
-                    if match.result == match.PLAYER_1_DEFAULTED:
-                        match.games_for_player2 = 3
-                    if match.result == match.PLAYER_2_DEFAULTED:
-                        match.games_for_player1 = 3
-                    print(match)
-                    match.save()
-                else:
-                    for error in errors:
-                        messages.error(request, error)
-        if request.POST.get('update_ranking'):
-            return redirect(update_players_ranking, round_id=ladder_round.id)
+    if ladder_round.status < 2:
+        messages.warning(request, 'Draw is not yet finalised.  Please finalise the draw before capturing the results.')
+    else:
+        if request.POST:
+            if request.POST.get('re-open-round'):
+                matches = Match.objects.filter(ladder_round=ladder_round)
+                for match in matches:
+                    match.delete()
+                ladder_round.status = ladder_round.OPEN
+                ladder_round.save()
+            else:
+                if request.POST.get('save_results'):
+                    form_matches = request.POST.getlist("match")
+                    for form_match in form_matches:
+                        match = Match.objects.get(id=form_match)
+                        if request.POST.get('match[' + form_match + '][player1-games]'):
+                            match.games_for_player1 = int(request.POST.get('match[' + form_match + '][player1-games]'))
+                        if request.POST.get('match[' + form_match + '][player2-games]'):
+                            match.games_for_player2 = int(request.POST.get('match[' + form_match + '][player2-games]'))
+                        if request.POST.get('match[' + form_match + '][player1-defaulted]'):
+                            match.result = match.PLAYER_1_DEFAULTED
+                        if request.POST.get('match[' + form_match + '][player2-defaulted]'):
+                            match.result = match.PLAYER_2_DEFAULTED
+                        if request.POST.get('match[' + form_match + '][match-cancelled]'):
+                            match.result = match.CANCELLED
+                        errors = validate_match_results(match)
+                        if len(errors) < 1:
+                            if match.games_for_player1 == 3:
+                                match.result = match.PLAYER_1_WON
+                            elif match.games_for_player2 == 3:
+                                match.result = match.PLAYER_2_WON
+                            if match.result == match.PLAYER_1_DEFAULTED:
+                                match.games_for_player2 = 3
+                            if match.result == match.PLAYER_2_DEFAULTED:
+                                match.games_for_player1 = 3
+                            match.save()
+                        else:
+                            for error in errors:
+                                messages.warning(request, error)
+                if request.POST.get('update_ranking'):
+                    return redirect(update_players_ranking, round_id=ladder_round.id)
     matches = Match.objects.filter(ladder_round=ladder_round)
     unplayed_matches = Match.objects.filter(ladder_round=ladder_round).filter(result__exact=0)
     if len(unplayed_matches) == 0:
@@ -248,10 +267,11 @@ def edit_match(request, round_id, match_id):
                 error_messages = validate_match_results(match)
                 if len(error_messages) > 0:
                     for message in error_messages:
-                        messages.error(request, message)
+                        messages.warning(request, message)
                 else:
                     match.save()
-                    messages.info(request, 'Match Saved Successfully')
+                    messages.success(request, 'Match Saved Successfully')
+                    return redirect(capture_results, round_id=ladder_round.id)
         else:
             return redirect(capture_results, round_id=ladder_round.id)
     else:
@@ -288,17 +308,8 @@ def update_players_ranking(request, round_id):
 
 def ladder_overview(request):
     ladders = Ladder.objects.filter(status=Ladder.OPEN)
-    for ladder in ladders:
-        ladder_rounds = LadderRound.objects.filter(ladder=ladder)
-        for ladder_round in ladder_rounds:
-            if ladder_round.status == ladder_round.COMPLETED:
-                matches_in_round = Match.objects.filter(ladder_round=ladder_round)
-                print(str(ladder_round.start_date))
-                for match in matches_in_round:
-                    print(match.games_for_player1)
-                    print(match.games_for_player2)
 
-    players = Player.objects.all().order_by('ranking') 
+    players = Player.objects.all().order_by('ranking')
     context = {
         'ladders': ladders,
         'players': players

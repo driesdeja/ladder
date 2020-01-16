@@ -102,3 +102,16 @@ footer {
 .even {
     color: green;
 }
+
+.player-select {
+    min-height: 100px;
+    line-height: 50px;
+    margin-top: 20px;
+}
+
+.player-list-box {
+    border-color: black;
+    border-style: double;
+    border-width: 2.5px;
+    min-height: 500px;
+}

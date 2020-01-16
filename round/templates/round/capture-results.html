@@ -10,109 +10,107 @@
         </ul>
     </div>
 
-    {% csrf_token %}
-    <p>Capture Results for Ladder round : {{ ladder_round.start_date }}</p>
-
-    <div class="draw-container">
-        {% if messages %}
-            <ul class="messages">
-                {% for message in messages %}
-                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+    {% if ladder_round.status == 2 %}
         <form method="post" action="{% url 'capture-results' ladder_round.id %}">
-            {% csrf_token %}
-            <table class="table text-center">
-                <thead>
-                <tr>
-                    <th class="text-center">Player 1</th>
-                    <th>Games for Player 1</th>
-                    <th>Player 1 defaulted</th>
-                    <th></th>
-                    <th class="text-center">Player 2</th>
-                    <th>Games for Player 2</th>
-                    <th>Player2 defaulted</th>
-                    <th>Game Cancelled</th>
-                    <th>Submit</th>
-                </tr>
-                </thead>
-                <tbody>
+        <p>Capture Results for Ladder round : {{ ladder_round.start_date }}</p>
+        <input class="btn" type="submit" name="re-open-round" value="Re-Open-Round"/>
+        <div class="draw-container">
 
-                <input type="hidden" name="number-of-matches" value="{{ matches|length }}"/>
-                {% for match in matches %}
 
+                {% csrf_token %}
+                <table class="table text-center">
+                    <thead>
                     <tr>
-                        <input type="hidden" name="match" value="{{ match.id }}"/>
-                        <td>{{ match.player1.first_name }} {{ match.player1.last_name }} ({{ match.player1.ranking }})
-                        </td>
-                        <td>
-                            {% if match.result == match.NOT_PLAYED %}
-                                <input type="text" name="match[{{ match.id }}][player1-games]"/>
-                            {% else %}
-                                {{ match.games_for_player1 }}
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if match.result == match.PLAYER_1_DEFAULTED %}
-                                {{ match.player1.first_name }} {{ match.player1.last_name }} Defaulted
-                            {% elif match.result == match.NOT_PLAYED %}
-                                <input type="checkbox" name="match[{{ match.id }}][player1-defaulted]">
-                            {% elif match.result == match.PLAYER_1_DEFAULTED %}
-                                <input type="checkbox" checked readonly/>
-                            {% endif %}
-                        </td>
-                        <td>VS</td>
-                        <td>{{ match.player2.first_name }} {{ match.player2.last_name }} ({{ match.player2.ranking }})
-                        </td>
-                        <td>
-                            {% if match.result == match.NOT_PLAYED %}
-                                <input type="text" name="match[{{ match.id }}][player2-games]"/>
-                            {% else %}
-                                {{ match.games_for_player2 }}
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if match.result == match.PLAYER_2_DEFAULTED %}
-                                {{ match.player2.first_name }} {{ match.player2.last_name }} Defaulted
-                            {% elif match.result == match.NOT_PLAYED %}
-                                <input type="checkbox" name="match[{{ match.id }}][player2-defaulted]">
-                            {% elif match.result == match.PLAYER_2_DEFAULTED %}
-                                <input type="checkbox" checked readonly/>
-                            {% endif %}
-                        </td>
-                        <td>{% if match.result == match.CANCELLED %}
-                            <input type="checkbox" checked readonly/>
-                        {% elif match.result != match.NOT_PLAYED %}
-
-                        {% else %}
-                            <input type="checkbox" name="match[{{ match.id }}][match-cancelled]">
-                        {% endif %}
-                        </td>
-                        <td>
-                            {% if ladder_round.status != ladder_round.COMPLETED and ladder_round.status != ladder_round.CANCELLED %}
-                                {% if match.result != match.NOT_PLAYED %}
-                                    <a href="{% url 'edit-match' ladder_round.id match.id %}">Edit</a>
-                                {% endif %}
-                            {% else %}
-                                {{ ladder_round.get_status_display }}
-                            {% endif %}
-                        </td>
+                        <th class="text-center">Player 1</th>
+                        <th>Games for Player 1</th>
+                        <th>Player 1 defaulted</th>
+                        <th></th>
+                        <th class="text-center">Player 2</th>
+                        <th>Games for Player 2</th>
+                        <th>Player2 defaulted</th>
+                        <th>Game Cancelled</th>
+                        <th>Submit</th>
                     </tr>
+                    </thead>
+                    <tbody>
+
+                    <input type="hidden" name="number-of-matches" value="{{ matches|length }}"/>
+                    {% for match in matches %}
+
+                        <tr>
+                            <input type="hidden" name="match" value="{{ match.id }}"/>
+                            <td>{{ match.player1.first_name }} {{ match.player1.last_name }}
+                                ({{ match.player1.ranking }})
+                            </td>
+                            <td>
+                                {% if match.result == match.NOT_PLAYED %}
+                                    <input type="text" name="match[{{ match.id }}][player1-games]"/>
+                                {% else %}
+                                    {{ match.games_for_player1 }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if match.result == match.PLAYER_1_DEFAULTED %}
+                                    {{ match.player1.first_name }} {{ match.player1.last_name }} Defaulted
+                                {% elif match.result == match.NOT_PLAYED %}
+                                    <input type="checkbox" name="match[{{ match.id }}][player1-defaulted]">
+                                {% elif match.result == match.PLAYER_1_DEFAULTED %}
+                                    <input type="checkbox" checked readonly/>
+                                {% endif %}
+                            </td>
+                            <td>VS</td>
+                            <td>{{ match.player2.first_name }} {{ match.player2.last_name }}
+                                ({{ match.player2.ranking }})
+                            </td>
+                            <td>
+                                {% if match.result == match.NOT_PLAYED %}
+                                    <input type="text" name="match[{{ match.id }}][player2-games]"/>
+                                {% else %}
+                                    {{ match.games_for_player2 }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if match.result == match.PLAYER_2_DEFAULTED %}
+                                    {{ match.player2.first_name }} {{ match.player2.last_name }} Defaulted
+                                {% elif match.result == match.NOT_PLAYED %}
+                                    <input type="checkbox" name="match[{{ match.id }}][player2-defaulted]">
+                                {% elif match.result == match.PLAYER_2_DEFAULTED %}
+                                    <input type="checkbox" checked readonly/>
+                                {% endif %}
+                            </td>
+                            <td>{% if match.result == match.CANCELLED %}
+                                <input type="checkbox" checked readonly/>
+                            {% elif match.result != match.NOT_PLAYED %}
+
+                            {% else %}
+                                <input type="checkbox" name="match[{{ match.id }}][match-cancelled]">
+                            {% endif %}
+                            </td>
+                            <td>
+                                {% if ladder_round.status != ladder_round.COMPLETED and ladder_round.status != ladder_round.CANCELLED %}
+                                    {% if match.result != match.NOT_PLAYED %}
+                                        <a href="{% url 'edit-match' ladder_round.id match.id %}">Edit</a>
+                                    {% endif %}
+                                {% else %}
+                                    {{ ladder_round.get_status_display }}
+                                {% endif %}
+                            </td>
+                        </tr>
 
 
-                {% endfor matches %}
+                    {% endfor matches %}
 
-                </tbody>
-            </table>
-            {% if ladder_round.status != ladder_round.COMPLETED and ladder_round.status != ladder_round.CANCELLED %}
-                {% if all_matches_captured %}
-                    <input class="btn" type="submit" name="update_ranking" value="Submit to Update Ranking">
-                {% else %}
-                    <input class="btn" type="submit" name="save_results" value="Save Results">
+                    </tbody>
+                </table>
+                {% if ladder_round.status != ladder_round.COMPLETED and ladder_round.status != ladder_round.CANCELLED %}
+                    {% if all_matches_captured %}
+                        <input class="btn" type="submit" name="update_ranking" value="Submit to Update Ranking">
+                    {% else %}
+                        <input class="btn" type="submit" name="save_results" value="Save Results">
+                    {% endif %}
                 {% endif %}
-            {% endif %}
 
-        </form>
-    </div>
+            </form>
+        </div>
+    {% endif %}
 {% endblock content %}

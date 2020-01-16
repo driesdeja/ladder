@@ -2,7 +2,7 @@ from .models import Player
 
 
 def update_ladder_ranking(player, action, new_ranking):
-    if new_ranking == 0:
+    if new_ranking <= 0:
         new_ranking = 1
     if action == 'add':
         '''Select all players where their current ranking is equal or higher than the new players ranking '''

@@ -1,5 +1,5 @@
 {% extends 'players/base.html' %}
-
+{% load crispy_forms_tags %}
 {% block content %}
     <div class="container">
         <ul class="progressbar">
@@ -10,18 +10,11 @@
         </ul>
     </div>
     <div class="container">
-        {% if messages %}
-            <ul class="messages">
-                {% for message in messages %}
-                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
         <p>{{ match.player1.first_name }} {{ match.player1.last_name }}
             vs {{ match.player2.first_name }} {{ match.player2.last_name }}</p>
         <form method="post" action="{% url 'edit-match' ladder_round.id match.id %}">
             {% csrf_token %}
-            {{ form.as_p }}
+            {{ form|crispy }}
             <input class="btn" type="submit" name="save" value="Save"/>
             <input class="btn" type="submit" name="cancel" value="Cancel"/>
         </form>
