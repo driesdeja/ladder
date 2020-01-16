@@ -1,13 +1,9 @@
 {% extends 'players/base.html' %}
 
+
 {% block content %}
     <div class="container-fluid">
-        <ul class="progressbar">
-            <li>Create Round</li>
-            <li class="active">Add Players to round</li>
-            <li><a href="{% url 'round-draw' ladder_round.id %}">Finalise Draw</a></li>
-            <li><a href="{% url 'capture-results' ladder_round.id %}">Capture Results</a></li>
-        </ul>
+        {% include 'round/ladder-admin-nav.html' with page_name='add-players' %}
     </div>
     <div class="container-fluid">
         <p>Add or Remove players from the round - {{ ladder_round.start_date }}

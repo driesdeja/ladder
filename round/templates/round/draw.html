@@ -2,12 +2,7 @@
 
 {% block content %}
     <div class="container">
-        <ul class="progressbar">
-            <li><a href="{% url 'ladder-detail' ladder_round.ladder.id %}">Create Round</a></li>
-            <li><a href="{% url 'manage-players-in-round' ladder_round.id %}">Add Players to round</a></li>
-            <li class="active"><a class="active" href="{% url 'round-draw' ladder_round.id %}">Finalise Draw</a></li>
-            <li><a href="{% url 'capture-results' ladder_round.id %}">Capture Results</a></li>
-        </ul>
+        {% include 'round/ladder-admin-nav.html' with page_name='draw' %}
     </div>
     <form method="post" action="{% url 'close-draw' ladder_round.id %}">
         {% csrf_token %}

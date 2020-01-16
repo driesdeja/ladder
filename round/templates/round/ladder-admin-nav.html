@@ -1,0 +1,30 @@
+<ul class="progressbar">
+    {% if page_name == 'add-players' %}
+        <li class="active">
+            Add Players to Round
+        </li>
+    {% else %}
+        <li>
+            <a href="{% url "manage-players-in-round" ladder_round.id %}">Add Players to Round</a>
+        </li>
+    {% endif %}
+    </li>
+
+    {% if page_name == 'draw' %}
+        <li class="active">
+            Finalise Draw
+            {% else %}
+        <li>
+            <a href="{% url 'round-draw' ladder_round.id %}">Finalise Draw</a>
+        </li>
+    {% endif %}
+
+    {% if page_name == 'capture' %}
+        <li class="active">Capture Results</li>
+    {% else %}
+        <li>
+            <a href="{% url 'capture-results' ladder_round.id %}">Capture Results</a>
+        </li>
+    {% endif %}
+    </li>
+</ul>

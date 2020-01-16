@@ -2,12 +2,7 @@
 
 {% block content %}
     <div class="container">
-        <ul class="progressbar">
-            <li><a href="{% url 'ladder-detail' ladder_round.ladder.id %}">Create Round</a></li>
-            <li><a href="{% url 'manage-players-in-round' ladder_round.id %}">Add Players to round</a></li>
-            <li><a href="{% url 'round-draw' ladder_round.id %}">Finalise Draw</a></li>
-            <li class="active">Capture Results</li>
-        </ul>
+        {% include 'round/ladder-admin-nav.html' with page_name='capture' %}
     </div>
 
     {% if ladder_round.status == 2 %}
