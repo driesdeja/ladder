@@ -5,11 +5,13 @@
     <p>Start Date: {{ ladder.start_date }}</p>
     <p>End Date: {{ ladder.end_date }}</p>
     <div class="col-md-3">
-    <h2>Add round to ladder:</h2>
+        <h2>Add round to ladder:</h2>
         <form method="POST">
             {% csrf_token %}
-           {{ form|crispy }}
-            <input type="hidden" name ="ladder" id="id_ladder" value="{{ ladder.id }}"/>
+
+            {{ form.start_date }}
+            {{ form.end_date }}
+            <input type="hidden" name="ladder" id="id_ladder" value="{{ ladder.id }}"/>
 
             <input class="btn btn-outline-info" type="submit" value="Save">
         </form>

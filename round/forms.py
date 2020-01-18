@@ -15,6 +15,7 @@ class LadderForm(forms.ModelForm):
 
 
 class LadderRoundForm(forms.ModelForm):
+
     class Meta:
         model = LadderRound
         fields = [
@@ -33,8 +34,7 @@ class LadderRoundForm(forms.ModelForm):
             raise forms.ValidationError(
                 "Rounds can only be future dated")
         ladder_rounds = LadderRound.objects.filter(ladder=ladder)
-        for ladder_round in ladder_rounds:
-            print(ladder_round)
+
         return start_date
 
 

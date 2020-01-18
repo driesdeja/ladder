@@ -13,7 +13,7 @@ from datetime import date
 from .forms import LadderForm, LadderRoundForm, MatchForm
 from players.models import Player
 from .utils import validate_match_results, get_players_in_round, get_players_not_in_round, setup_matches_for_draw, \
-    ensure_player_not_already_in_round
+    add_player_to_round
 from players.utils import calculate_change_in_ranking, update_ladder_ranking
 from players.views import list_players
 
@@ -61,10 +61,12 @@ def ladder_detail(request, ladder_id):
     ladder = Ladder.objects.get(id=ladder_id)
     rounds = LadderRound.objects.filter(ladder=ladder).order_by('start_date')
     if request.POST:
-        print("Form posted")
         if form.is_valid():
             form.save()
             form = LadderRoundForm()
+            if ladder.status == ladder.CREATED:
+                ladder.status = ladder.OPEN
+                ladder.save()
     context = {
         'form': form,
         'ladder': ladder,
@@ -74,11 +76,19 @@ def ladder_detail(request, ladder_id):
 
 
 def round_detail(request, round_id):
+    if request.POST:
+        previous_round_id = request.POST.get('previous_round')
+        previous_round = LadderRound.objects.get(id=previous_round_id)
+        players = get_players_in_round(previous_round)
+        for player in players:
+            add_player_to_round(round_id, player)
     ladder_round = LadderRound.objects.get(id=round_id)
     players = get_players_in_round(ladder_round)
+    previous_rounds = LadderRound.objects.filter(ladder=ladder_round.ladder, status__exact=LadderRound.COMPLETED)
     context = {
         'ladder_round': ladder_round,
-        'players': players
+        'players': players,
+        'previous_rounds': previous_rounds
     }
     return render(request, 'round/round-detail.html', context)
 
@@ -106,15 +116,14 @@ def add_players_to_round(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
 
     if request.POST.get('add_to_round[]'):
+        if ladder_round.status > ladder_round.OPEN:
+            messages.error(request, 'The round is not open anymore, re-open the round if needed.')
+        if not ladder_round.status == ladder_round.OPEN:
+            ladder_round.status = ladder_round.OPEN
+            ladder_round.save()
         players_to_add = request.POST.getlist('add_to_round[]')
         for player in players_to_add:
-            add_player_to_round = PlayersInLadderRound()
-            add_player_to_round.player = Player.objects.get(id=player)
-            # It is important to ensure that only a single instance of a player is ever in a ladder round.
-            # this should never happen but it prudent to check before inserting duplicates.
-            ensure_player_not_already_in_round(round_id, add_player_to_round.player)
-            add_player_to_round.ladder_round = LadderRound.objects.get(id=round_id)
-            add_player_to_round.save()
+            add_player_to_round(round_id, player)
 
     if request.POST.get('remove_from_round[]'):
         players_to_remove = request.POST.getlist('remove_from_round[]')

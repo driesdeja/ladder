@@ -2,47 +2,52 @@
 
 {% block content %}
     <div class="container">
-        <ul class="progressbar">
-            <li>Create Round</li>
-            <li class="active"><a href="{% url 'manage-players-in-round' ladder_round.id %}">Add Players to round</a>
-            </li>
-            <li><a href="{% url 'round-draw' ladder_round.id %}">Finalise Draw</a></li>
-            <li>Capture Results</li>
-        </ul>
+        {% include 'round/ladder-admin-nav.html' %}
     </div>
-    <h1>Round Detail - {{ ladder_round.date }}</h1>
-
     <p>Status: {{ ladder_round.get_status_display }}</p>
     <p>End Date: {{ ladder_round.end_date }}</p>
+
     <div class="col-md-3">
-        <p></p>
+        Copy players from previous round?
+        {% if previous_rounds %}
+            <form method="POST">
+                {% csrf_token %}
+                <select type="select" name="previous_round">
+                    {% for previous_round in previous_rounds %}
+                        <option value="{{ previous_round.id }}">
+                            {{ previous_round.start_date }} - {{ previous_round.end_date }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <input class="btn btn-info" type="submit" value="Copy players into Round"/>
+            </form>
+        {% endif %}
+
+
+
         <p></p>
 
     </div>
     <div class="col-md-9">
-        <p class="text-left font-weight-bold">Players in the round</p>
-        <table class="table text-left">
+        <table class="table">
             <thead>
             <tr>
-                <th scope="col">#</th>
-                <th scope="col">First</th>
-                <th scope="col">Last</th>
-                <th scope="col">Contact Number</th>
+                <th scope="col">Ladder Ranking</th>
+                <th scope="col">First Name</th>
+                <th scope="col">Last Name</th>
             </tr>
             </thead>
             <tbody>
-            {% for player in players %}
-                <tr>
+                {% for player in players %}
+                    <tr>
                     <td>{{ player.ranking }}</td>
                     <td>{{ player.first_name }}</td>
                     <td>{{ player.last_name }}</td>
-                    <td>{{ player.contact_number }}</td>
-                </tr>
-            {% endfor %}
+                    </tr>
 
+                {% endfor %}
             </tbody>
         </table>
-
     </div>
 
 {% endblock content %}
