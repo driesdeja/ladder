@@ -7,9 +7,9 @@
 
     {% if ladder_round.status == 2 %}
         <form method="post" action="{% url 'capture-results' ladder_round.id %}">
-        <p>Capture Results for Ladder round : {{ ladder_round.start_date }}</p>
-        <input class="btn" type="submit" name="re-open-round" value="Re-Open-Round"/>
-        <div class="draw-container">
+            <p>Capture Results for Ladder round : {{ ladder_round.start_date }}</p>
+            <input class="btn" type="submit" name="re-open-round" value="Re-Open-Round"/>
+            <div class="draw-container">
 
 
                 {% csrf_token %}
@@ -24,7 +24,8 @@
                         <th>Games for Player 2</th>
                         <th>Player2 defaulted</th>
                         <th>Game Cancelled</th>
-                        <th>Submit</th>
+                        <th>Date Played</th>
+                        <th>edit</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -73,22 +74,32 @@
                                     <input type="checkbox" checked readonly/>
                                 {% endif %}
                             </td>
-                            <td>{% if match.result == match.CANCELLED %}
-                                <input type="checkbox" checked readonly/>
-                            {% elif match.result != match.NOT_PLAYED %}
+                            <td>
+                                {% if match.result == match.CANCELLED %}
+                                    <input type="checkbox" checked readonly/>
+                                {% elif match.result != match.NOT_PLAYED %}
 
-                            {% else %}
-                                <input type="checkbox" name="match[{{ match.id }}][match-cancelled]">
-                            {% endif %}
+                                {% else %}
+                                    <input type="checkbox" name="match[{{ match.id }}][match-cancelled]">
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if match.result == match.NOT_PLAYED %}
+                                    <input type="date" name="match[{{ match.id }}][date-played]"
+                                       value={% now "SHORT_DATE_FORMAT" %}">
+                                {% else %}
+                                    {{ match.date_played|date:'d-m-Y' }}
+                                {% endif %}
+
                             </td>
                             <td>
                                 {% if ladder_round.status != ladder_round.COMPLETED and ladder_round.status != ladder_round.CANCELLED %}
                                     {% if match.result != match.NOT_PLAYED %}
                                         <a href="{% url 'edit-match' ladder_round.id match.id %}">Edit</a>
-                                    {% endif %}
-                                {% else %}
-                                    {{ ladder_round.get_status_display }}
-                                {% endif %}
+                                       {% endif %}
+                                       {% else %}
+                                           {{ ladder_round.get_status_display }}
+                                       {% endif %}
                             </td>
                         </tr>
 
@@ -105,7 +116,7 @@
                     {% endif %}
                 {% endif %}
 
-            </form>
+        </form>
         </div>
     {% endif %}
 {% endblock content %}

@@ -9,7 +9,7 @@ from .models import Match
 from .models import Ladder
 from .models import Match
 from .models import MatchResult
-from datetime import date
+from datetime import date, datetime
 from .forms import LadderForm, LadderRoundForm, MatchForm
 from players.models import Player
 from .utils import validate_match_results, get_players_in_round, get_players_not_in_round, setup_matches_for_draw, \
@@ -224,6 +224,13 @@ def capture_results(request, round_id):
                             match.result = match.PLAYER_2_DEFAULTED
                         if request.POST.get('match[' + form_match + '][match-cancelled]'):
                             match.result = match.CANCELLED
+                        if request.POST.get('match[' + form_match + '][date-played]'):
+                            date_str = request.POST.get('match[' + form_match + '][date-played]')
+                            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+                            match.date_played = date_obj
+                            match.date_played = datetime.strptime(request.POST.get('match[' + form_match + '][date-played]'), '%Y-%m-%d')
+                        else:
+                            match.date_played = date.today()
                         errors = validate_match_results(match)
                         if len(errors) < 1:
                             if match.games_for_player1 == 3:
@@ -234,6 +241,7 @@ def capture_results(request, round_id):
                                 match.games_for_player2 = 3
                             if match.result == match.PLAYER_2_DEFAULTED:
                                 match.games_for_player1 = 3
+
                             match.save()
                         else:
                             for error in errors:

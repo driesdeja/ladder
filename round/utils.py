@@ -237,11 +237,13 @@ def matches_player_played_in(player):
     all_matches = []
     matches_played_in_as_player1 = Match.objects.filter(player1=player).order_by('-last_updated')
     matches_played_in_as_player2 = Match.objects.filter(player2=player).order_by('-last_updated')
+
     for match in matches_played_in_as_player1:
         result = get_match_result(match, 1)
 
         all_matches.append({
             'ladder_round': match.ladder_round.start_date,
+            'date_played': match.date_played,
             'opponent': f'{match.player2.first_name} {match.player2.last_name}',
             'games_for': match.games_for_player1,
             'games_against': match.games_for_player2,
@@ -251,13 +253,15 @@ def matches_player_played_in(player):
         result = get_match_result(match, 2)
         all_matches.append({
             'ladder_round': match.ladder_round.start_date,
+            'date_played': match.date_played,
             'opponent': f'{match.player1.first_name} {match.player1.last_name}',
             'games_for': match.games_for_player2,
             'games_against': match.games_for_player1,
             'result': result
         })
-
+    all_matches = sorted(all_matches, key=lambda x: x['date_played'], reverse=True)
     return all_matches
+
 
 def get_match_result(match, player_number):
     result = ''
