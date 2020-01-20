@@ -8,4 +8,4 @@ class Player(models.Model):
     ranking = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.first_name + ' ' + self.last_name
+        return f'{self.first_name} {self.last_name}'

@@ -1,8 +1,9 @@
-from .models import PlayersInLadderRound
+from .models import PlayersInLadderRound, PlayerRanking
 from .models import Ladder
 from .models import LadderRound
 from .models import Match
 from players.models import Player
+from datetime import datetime
 
 
 def get_players_in_round(ladder_round):
@@ -83,3 +84,208 @@ def add_player_to_round(round_id, player):
     ensure_player_not_already_in_round(round_id, player_to_add.player)
     player_to_add.ladder_round = ladder_round
     player_to_add.save()
+
+
+def update_ladder_ranking(player, action, new_ranking):
+    """This action only occurs when a player is added for the first time."""
+    if action == 'add':
+        today = datetime.today()
+        '''Select all players where their current ranking is equal or higher than the new players ranking '''
+
+        '''If the new player's ranking in 0 then we add him to the end of the ranking list)'''
+        if new_ranking == 0:
+            players = Player.objects.all()
+            player.ranking = len(players) + 1
+        else:
+            players = Player.objects.filter(ranking__gte=new_ranking).order_by('ranking')
+            player.ranking = new_ranking
+            for each_player in players:
+                each_player.ranking = each_player.ranking + 1
+                each_player_ranking = PlayerRanking()
+                each_player_ranking.player = each_player
+                each_player_ranking.ranking = each_player.ranking
+                each_player_ranking.reason_for_change = \
+                    f'{player.first_name} {player.last_name} added to the ladder {today}.'
+                if activate_and_invalidate_ranking(each_player_ranking):
+                    each_player_ranking.save()
+                    each_player.save()
+                else:
+                    raise
+
+        """Insert log entry for the update of the ranking"""
+        ranking = PlayerRanking()
+        ranking.player = player
+        ranking.ranking = player.ranking
+        ranking.reason_for_change = 'Initial creation of the the player'
+        if activate_and_invalidate_ranking(ranking):
+            player.save()
+            ranking.save()
+        else:
+            raise
+    if action == 'delete':
+        players = Player.objects.filter(ranking__gt=player.ranking).order_by('ranking')
+        for each_player in players:
+            each_player.ranking = each_player.ranking - 1
+            each_player.save()
+    if action == 'change':
+        if new_ranking <= 0:
+            new_ranking = 1
+        if player.ranking > new_ranking:
+            players = Player.objects.filter(ranking__gte=new_ranking).filter(ranking__lt=player.ranking)
+            for each_player in players:
+                each_player.ranking = each_player.ranking + 1
+                each_player.save()
+            player.ranking = new_ranking
+            player.save()
+        else:
+            if player.ranking < new_ranking:
+                if player.ranking != 0:
+                    players = Player.objects.filter(ranking__gt=player.ranking).filter(ranking__lte=new_ranking)
+                    for each_player in players:
+                        each_player.ranking = each_player.ranking - 1
+                        each_player.save()
+                    player.ranking = new_ranking
+                    player.save()
+                else:
+                    players = Player.objects.filter(ranking__gte=new_ranking).order_by('ranking')
+                    for each_player in players:
+                        each_player.ranking = each_player.ranking + 1
+                        each_player.save()
+                    player.ranking = new_ranking
+                    player.save()
+
+
+def ranking_change(games_won):
+    if games_won == 0:
+        player_ranking_change = 1
+    elif games_won == 1:
+        player_ranking_change = 0
+    elif games_won == 2:
+        player_ranking_change = -1
+    elif games_won == 3:
+        player_ranking_change = -2
+    return player_ranking_change
+
+
+def setup_player_for_ranking_change(player, games_won):
+    player_ranking_change = ranking_change(games_won)
+
+    player_ranking = {
+        'player_id': player.id,
+        'player_name': player.first_name + ' ' + player.last_name,
+        'player_current_ranking': player.ranking,
+        'player_ranking_change': player_ranking_change
+    }
+    return player_ranking
+
+
+def calculate_change_in_ranking(matches):
+    new_ranking_list = []
+    for match in matches:
+        player_ranking = setup_player_for_ranking_change(match.player1, match.games_for_player1)
+        new_ranking_list.append(player_ranking)
+        player_ranking = setup_player_for_ranking_change(match.player2, match.games_for_player2)
+        new_ranking_list.append(player_ranking)
+    return new_ranking_list
+
+
+def activate_and_invalidate_ranking(ranking):
+    # Find the currently active ranking
+    current_ranking = PlayerRanking.objects.filter(player=ranking.player, eff_to__isnull=True).first()
+    now = datetime.now()
+    current_ranking.eff_to = now
+    ranking.eff_from = now
+    return True
+
+
+"""
+    This function assumes that the player.ranking is the most accurate.
+    The reason_why should be descriptive enough to explain the potential update in ranking
+"""
+
+
+def compare_and_update_player_with_playerranking(reason_for_change):
+    players = Player.objects.all()
+    for player in players:
+        player_ranking = PlayerRanking.objects.filter(player=player, eff_to__isnull=True).first()
+        now = datetime.now()
+        # if there is a record in PlayerRanking
+        if player_ranking:
+            if player.ranking != player_ranking.ranking:
+                new_player_ranking = PlayerRanking()
+                new_player_ranking.eff_from = now
+                new_player_ranking.ranking = player.ranking
+                player_ranking.eff_to = now
+                new_player_ranking.player = player_ranking.player
+                if len(reason_for_change) > 0:
+                    new_player_ranking.reason_for_change = reason_for_change
+                player_ranking.save()
+                new_player_ranking.save()
+        # if there is no record for the player in PlayerRanking, this should rarely happen, but due to the decoupling
+        # it is possible to create a new Player and not have a ranking in the PlayerRanking log
+        else:
+            player_ranking = PlayerRanking()
+            player_ranking.eff_from = now
+            player_ranking.player = player
+            player_ranking.reason_for_change = reason_for_change
+            player_ranking.ranking = player.ranking
+            player_ranking.save()
+    return True
+
+
+def matches_player_played_in(player):
+    all_matches = []
+    matches_played_in_as_player1 = Match.objects.filter(player1=player).order_by('-last_updated')
+    matches_played_in_as_player2 = Match.objects.filter(player2=player).order_by('-last_updated')
+    for match in matches_played_in_as_player1:
+        result = get_match_result(match, 1)
+
+        all_matches.append({
+            'ladder_round': match.ladder_round.start_date,
+            'opponent': f'{match.player2.first_name} {match.player2.last_name}',
+            'games_for': match.games_for_player1,
+            'games_against': match.games_for_player2,
+            'result': result
+        })
+    for match in matches_played_in_as_player2:
+        result = get_match_result(match, 2)
+        all_matches.append({
+            'ladder_round': match.ladder_round.start_date,
+            'opponent': f'{match.player1.first_name} {match.player1.last_name}',
+            'games_for': match.games_for_player2,
+            'games_against': match.games_for_player1,
+            'result': result
+        })
+
+    return all_matches
+
+def get_match_result(match, player_number):
+    result = ''
+    if player_number == 1:
+        if match.result == match.PLAYER_1_WON:
+            result = 'Won'
+        elif match.result == match.PLAYER_2_WON:
+            result = 'Loss'
+        elif match.result == match.PLAYER_1_DEFAULTED:
+            result = 'Loss by default'
+        elif match.result == match.PLAYER_2_DEFAULTED:
+            result = 'Won by default'
+        elif result == match.CANCELLED:
+            result = 'Cancelled'
+        elif result == match.NOT_PLAYED:
+            result == 'Not played'
+    if player_number == 2:
+        if match.result == match.PLAYER_1_WON:
+            result = 'Loss'
+        elif match.result == match.PLAYER_2_WON:
+            result = 'Won'
+        elif match.result == match.PLAYER_1_DEFAULTED:
+            result = 'Won by default'
+        elif match.result == match.PLAYER_2_DEFAULTED:
+            result = 'Loss by default'
+        elif result == match.CANCELLED:
+            result = 'Cancelled'
+        elif result == match.NOT_PLAYED:
+            result == 'Not played'
+
+    return result

@@ -115,3 +115,8 @@ footer {
     border-width: 2.5px;
     min-height: 500px;
 }
+
+.profile-top-section {
+    min-height: 100px;
+    background-color: green;
+}

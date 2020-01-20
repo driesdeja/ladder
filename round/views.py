@@ -13,8 +13,8 @@ from datetime import date
 from .forms import LadderForm, LadderRoundForm, MatchForm
 from players.models import Player
 from .utils import validate_match_results, get_players_in_round, get_players_not_in_round, setup_matches_for_draw, \
-    add_player_to_round
-from players.utils import calculate_change_in_ranking, update_ladder_ranking
+    add_player_to_round, compare_and_update_player_with_playerranking
+from round.utils import calculate_change_in_ranking, update_ladder_ranking
 from players.views import list_players
 
 
@@ -302,9 +302,15 @@ def update_players_ranking(request, round_id):
             player = Player.objects.get(id=each_player['player_id'])
             new_ranking = player.ranking + int(each_player['player_ranking_change'])
             update_ladder_ranking(player, 'change', new_ranking)
-        ladder_round.end_date = date.today()
+        today = date.today()
+        ladder_round.end_date = today
         ladder_round.status = ladder_round.COMPLETED
         ladder_round.save()
+        """ Need to update the ranking change log once all the movements for the rounds has been completed.
+            The way to do this is to loop through the rankings in the player list and compare that with the active
+            PlayerRanking for the player
+        """
+        compare_and_update_player_with_playerranking(f'Ladder round {ladder_round.start_date} updated on {today}')
         return redirect(list_players)
 
     context = {

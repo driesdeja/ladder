@@ -3,7 +3,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from .models import Player
 from .forms import PlayerForm
-from .utils import update_ladder_ranking
+from round.utils import update_ladder_ranking
 
 
 def list_players(request):

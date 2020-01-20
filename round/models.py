@@ -108,6 +108,7 @@ class Match(models.Model):
     player2 = models.ForeignKey(player_models.Player, on_delete=models.PROTECT, related_name='player_2')
     games_for_player1 = models.IntegerField(default=0)
     games_for_player2 = models.IntegerField(default=0)
+    date_played = models.DateField(null=True)
     result = models.IntegerField(choices=Result, default=NOT_PLAYED)
     date_created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
@@ -125,3 +126,16 @@ class Match(models.Model):
                '\n\tMatch Result: ' + str(self.result) + \
                '\n\tDate Created: ' + str(self.date_created) + \
                '\n\tLast Updated: ' + str(self.last_updated)
+
+
+class PlayerRanking(models.Model):
+    player = models.ForeignKey(player_models.Player, on_delete=models.PROTECT)
+    ranking = models.IntegerField(default=0)
+    eff_from = models.DateTimeField()
+    eff_to = models.DateTimeField(null=True)
+    last_updated = models.DateTimeField(auto_now=True)
+    reason_for_change = models.TextField(max_length=30, blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.player.first_name} ranking {self.ranking} effective from {self.eff_from} to ' \
+               f'{self.eff_to}. It was changed on {self.last_updated} because {self.reason_for_change}'
