@@ -1,11 +1,53 @@
 {% extends "players/base.html" %}
-
+{% load crispy_forms_tags %}
 {% block content %}
     <div class="container-fluid">
         <div class="row profile-top-section">
             <div class="col-sm-6 h-100">
-                <span class="profile-player-name>">{{ user.profile.player.first_name }} {{ user.profile.player.last_name|upper }}</span>
+                <div class="profile-personal-details">
+                    <h3>Person Details</h3>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <fieldset class="form-group">
+                            <legend class="border-bottom mb-4">Personal Details</legend>
+                            {{ u_form|crispy }}
+                            {{ p_form|crispy }}
+                        </fieldset>
+                        <div class="form-group">
+                            <button class="btn btn-outline-info" type="submit">Update</button>
+                        </div>
+                    </form>
+
+                </div>
+
+            </div>
+            <div class="col-sm-6">
+                <h3>Squash Details</h3>
+                <h4>Current Ranking: {{ user.profile.player.ranking }}</h4>
+                <legend class="border-bottom mb-4">Ranking History</legend>
                 <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Ranking</th>
+                        <th>From</th>
+                        <th>Until</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for ranking in player_rankings %}
+                        <tr>
+                            <td>{{ ranking.ranking }}</td>
+                            <td>{{ ranking.eff_from|date:'d M Y' }}</td>
+                            <td>{{ ranking.eff_to|date:'d M Y' }}</td>
+                            <td>{{ ranking.reason_for_change }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+
+                </table>
+            <legend class="border-bottom mb-4">Match History</legend>
+             <table class="table">
                     <thead>
                     <tr>
                         <th>Round Date</th>
@@ -29,30 +71,31 @@
                     {% endfor %}
                     </tbody>
                 </table>
-            </div>
-            <div class="col-sm-6">
-                <h3>Current Ranking: {{ user.profile.player.ranking }}</h3>
-                <h3>Ranking History:</h3>
-                <table class="table">
+            <legend class="border-bottom mb-4">Ladder History</legend>
+             <table class="table">
                     <thead>
                     <tr>
-                        <th>Ranking</th>
-                        <th>From</th>
-                        <th>Until</th>
-                        <th>Description</th>
+                        <th>Ladder</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Initial Ranking (# of players in round joined)</th>
+                        <th>Final Ranking(# of players in final round)</th>
+                        <th>Movement in ranking</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {% for ranking in player_rankings %}
+                    {% for ladder in ladders_competed_in %}
                         <tr>
-                            <td>{{ ranking.ranking }}</td>
-                            <td>{{ ranking.eff_from|date:'d M Y' }}</td>
-                            <td>{{ ranking.eff_to|date:'d M Y' }}</td>
-                            <td>{{ ranking.reason_for_change }}</td>
+                            <td>{{ ladder.title }}</td>
+                            <td>{{ ladder.start_date }}</td>
+                            <td>{{ ladder.end_date }}</td>
+                            <td></td>
+                            <td></td>
                         </tr>
+
+
                     {% endfor %}
                     </tbody>
-
                 </table>
             </div>
         </div>
