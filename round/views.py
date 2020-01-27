@@ -128,7 +128,6 @@ def add_players_to_round(request, round_id):
     if request.POST.get('remove_from_round[]'):
         players_to_remove = request.POST.getlist('remove_from_round[]')
         for player in players_to_remove:
-            print(str(player))
             players_to_remove = PlayersInLadderRound.objects.filter(player=player)
             for player_to_remove in players_to_remove:
                 player_to_remove.delete()
@@ -150,11 +149,8 @@ def round_draw(request, round_id):
     players = get_players_in_round(ladder_round)
     matches = setup_matches_for_draw(ladder_round, players)
     # Setting up the match ups/matches
-    if len(players) % 2 == 0:
-        print('EVEN' + str(len(players)))
-    else:
+    if len(players) % 2 != 0:
         messages.warning(request, 'The number of players in the draw is uneven, please add or remove someone')
-        print('odd' + str(len(players)))
     context = {
         'ladder_round': ladder_round,
         'players': players,

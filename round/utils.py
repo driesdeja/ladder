@@ -64,7 +64,7 @@ def validate_match_results(match):
 
 
 '''The purpose of this function is to ensure that no duplicate player exist in the LadderRound
-It will delete everyone it finds and always return False as it would have deleted all records.'''
+It will all'''
 
 
 def ensure_player_not_already_in_round(round_id, player):
@@ -89,13 +89,11 @@ def add_player_to_round(round_id, player):
 def update_ladder_ranking(player, action, new_ranking):
     """This action only occurs when a player is added for the first time."""
     if action == 'add':
-        today = datetime.today()
-        '''Select all players where their current ranking is equal or higher than the new players ranking '''
-
+        today = datetime.now()
         '''If the new player's ranking in 0 then we add him to the end of the ranking list)'''
         if new_ranking == 0:
             players = Player.objects.all()
-            player.ranking = len(players) + 1
+            player.ranking = len(players)
         else:
             players = Player.objects.filter(ranking__gte=new_ranking).order_by('ranking')
             player.ranking = new_ranking
@@ -144,6 +142,8 @@ def update_ladder_ranking(player, action, new_ranking):
                     for each_player in players:
                         each_player.ranking = each_player.ranking - 1
                         each_player.save()
+                    if new_ranking > players[len(players)-1].ranking:
+                        new_ranking = players[len(players)-1].ranking + 1
                     player.ranking = new_ranking
                     player.save()
                 else:
@@ -164,6 +164,8 @@ def ranking_change(games_won):
         player_ranking_change = -1
     elif games_won == 3:
         player_ranking_change = -2
+    else:
+        raise ValueError(f'Games won must be between 0 and 3 and not {games_won}!')
     return player_ranking_change
 
 
@@ -190,10 +192,13 @@ def calculate_change_in_ranking(matches):
 
 
 def activate_and_invalidate_ranking(ranking):
+    now = datetime.now()
     # Find the currently active ranking
     current_ranking = PlayerRanking.objects.filter(player=ranking.player, eff_to__isnull=True).first()
-    now = datetime.now()
-    current_ranking.eff_to = now
+    # If there is no previous PlayerRanking, only happens if it is a new player -
+    # ranking will then be the first PlayerRanking
+    if current_ranking:
+        current_ranking.eff_to = now
     ranking.eff_from = now
     return True
 
