@@ -7,5 +7,8 @@ class Player(models.Model):
     contact_number = models.CharField(max_length=30)
     ranking = models.IntegerField(default=0)
 
+    class Meta:
+        ordering = ['last_name']
+
     def __str__(self):
         return f'{self.first_name} {self.last_name}'

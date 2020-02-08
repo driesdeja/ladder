@@ -133,3 +133,6 @@ dmypy.json
 
 #migrations
 migrations/
+
+player.yaml
+player.json

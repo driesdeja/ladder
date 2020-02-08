@@ -14,6 +14,13 @@ class LadderForm(forms.ModelForm):
         ]
 
 
+class LadderStatusForm(forms.ModelForm):
+    class Meta:
+        model = Ladder
+        fields = [
+            'end_date',
+        ]
+
 class LadderRoundForm(forms.ModelForm):
 
     class Meta:

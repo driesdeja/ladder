@@ -10,7 +10,7 @@ from .models import Ladder
 from .models import Match
 from .models import MatchResult
 from datetime import date, datetime
-from .forms import LadderForm, LadderRoundForm, MatchForm
+from .forms import LadderForm, LadderRoundForm, MatchForm, LadderStatusForm
 from players.models import Player
 from .utils import validate_match_results, get_players_in_round, get_players_not_in_round, setup_matches_for_draw, \
     add_player_to_round, compare_and_update_player_with_playerranking
@@ -56,19 +56,49 @@ def ladder_admin(request):
 
 
 def ladder_detail(request, ladder_id):
-    form = LadderRoundForm(request.POST or None)
 
+    form = LadderRoundForm(request.POST or None)
     ladder = Ladder.objects.get(id=ladder_id)
-    rounds = LadderRound.objects.filter(ladder=ladder).order_by('start_date')
+    rounds = list(LadderRound.objects.filter(ladder=ladder).order_by('start_date'))
     if request.POST:
-        if form.is_valid():
-            form.save()
-            form = LadderRoundForm()
-            if ladder.status == ladder.CREATED:
-                ladder.status = ladder.OPEN
-                ladder.save()
+        if request.POST.get("add_round"):
+            if form.is_valid():
+                form.save()
+                form = LadderRoundForm()
+                if ladder.status == ladder.CREATED:
+                    ladder.status = ladder.OPEN
+                    ladder.save()
+        elif request.POST.get('close_ladder'):
+            if rounds:
+                ladder.status = ladder.COMPLETED
+            else:
+                ladder.status = ladder.CANCELLED
+            if request.POST.get('end_date'):
+                ladder.end_date = request.POST.get('end_date')
+            else:
+                if not ladder.end_date:
+                    ladder.end_date = datetime.now()
+            ladder.save()
+            return redirect(ladder_admin)
+        elif request.POST.get('delete_ladder'):
+            ladder.delete()
+            return redirect(ladder_admin)
+        elif request.POST.get('re_open'):
+            ladder.status = ladder.OPEN
+
+            if ladder.end_date <= date.today():
+                ladder.end_date = None
+            ladder.save()
+            return redirect(ladder_detail, ladder_id)
+    ladder_close_form = LadderStatusForm(initial={'end_date': datetime.now()})
+    closeable = True
+    for ladder_round in rounds:
+        if ladder_round.status < ladder_round.COMPLETED:
+            closeable = False
     context = {
         'form': form,
+        'closeable': closeable,
+        'ladder_close_form' : ladder_close_form,
         'ladder': ladder,
         'rounds': rounds
     }
@@ -299,7 +329,7 @@ def edit_match(request, round_id, match_id):
 
 def update_players_ranking(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
-    matches = Match.objects.filter(ladder_round=ladder_round)
+    matches = Match.objects.filter(ladder_round=ladder_round).order_by("player1.ranking")
     new_ranking_list = calculate_change_in_ranking(matches)
     if request.POST:
         for each_player in new_ranking_list:

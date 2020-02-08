@@ -1,6 +1,6 @@
 from django.test import TestCase
 from datetime import date, datetime
-from .models import PlayersInLadderRound, Ladder, LadderRound
+from .models import PlayersInLadderRound, Ladder, LadderRound, Match, MatchResult
 from players.models import Player
 from .utils import add_player_to_round, ensure_player_not_already_in_round, ranking_change, update_ladder_ranking
 
@@ -24,6 +24,11 @@ class RoundUtilsTestCase(TestCase):
         self.ladder = Ladder.objects.create(title='Fairy Tale Ladder', start_date=date.today())
 
         self.ladder_round = LadderRound.objects.create(start_date=date.today(), ladder=self.ladder)
+
+        Match.objects.create(player1=Player.objects.get(ranking=1), player2=Player.objects.get(ranking=2), ladder_round=LadderRound.objects.all().first())
+        Match.objects.create(player1=Player.objects.get(ranking=3), player2=Player.objects.get(ranking=4), ladder_round=LadderRound.objects.all().first())
+        Match.objects.create(player1=Player.objects.get(ranking=5), player2=Player.objects.get(ranking=6), ladder_round=LadderRound.objects.all().first())
+        Match.objects.create(player1=Player.objects.get(ranking=7), player2=Player.objects.get(ranking=8), ladder_round=LadderRound.objects.all().first())
 
     def test_add_player_to_round(self):
         add_player_to_round(self.ladder_round.id, Player.objects.get(first_name='Tom'))
@@ -86,3 +91,14 @@ class RoundUtilsTestCase(TestCase):
         # players = Player.objects.all().order_by('ranking')
         # for player in players:
         #     print(f'{player.first_name} ranking: {player.ranking}')
+
+    # Not sure if capture match should be tested.  The important issue was the order in which the matches were
+    # to be processed as that will influence ranking.  This has been resolved by using order_by on the Match model to
+    # ensure that the Matches are always processed from the highest ranked player to the lowest rank.
+    # that might be something to test that the ranking results are predictable.
+    def test_capture_match_results(self):
+
+        matches = Match.objects.all()
+        for match in matches:
+            print(match)
+        self.assertTrue(True)

@@ -114,7 +114,8 @@ class Match(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name_plural = "Matches"
+        verbose_name_plural = 'Matches',
+        ordering = ['player1__ranking']
 
     def __str__(self):
         return '\nDraw' \

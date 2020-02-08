@@ -9,6 +9,8 @@
                 {{ form|crispy }}
             </div>
             <div class="form-group">
+                <input id="datepicker" width="276"/>
+
                 <input class="btn btn-outline-info" type="submit" value="Save">
             </div>
         </form>
@@ -42,4 +44,9 @@
             </tbody>
         </table>
     </div>
+    <script>
+        $('#datepicker').datepicker({
+            uiLibrary: 'bootstrap4'
+        });
+    </script>
 {% endblock content %}
