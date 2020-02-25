@@ -11,35 +11,37 @@
                 Not set
             {% endif %}
         </p>
-
-        {% if ladder.status < ladder.CLOSED %}
-            <h2>Add round to ladder:</h2>
-            <form method="POST">
-                {% csrf_token %}
-                {{ form.start_date }}
-                {{ form.end_date }}
-                <input class="btn btn-outline-info" type="submit" id="add_round" value="Add Round">
-            </form>
-
-            {% if closeable %}
-                <div class="side-panel-form">
-                    <h2>Close Ladder</h2>
-                    <form method="POST">
-                        {% csrf_token %}
-                        {{ ladder_status_form.end_date }}
-                        <input class="btn btn-outline-info" type="submit" name="close_ladder" value="Close Ladder">
-                    </form>
-                </div>
+        {% if perms.round.add_round %}
+            {% if ladder.status < ladder.CLOSED %}
+                <h2>Add round to ladder:</h2>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.start_date }}
+                    {{ form.end_date }}
+                    <input class="btn btn-outline-info" type="submit" id="add_round" value="Add Round">
+                </form>
+                {% if closeable %}
+                    <div class="side-panel-form">
+                        <h2>Close Ladder</h2>
+                        <form method="POST">
+                            {% csrf_token %}
+                            {{ ladder_status_form.end_date }}
+                            <input class="btn btn-outline-info" type="submit" name="close_ladder" value="Close Ladder">
+                        </form>
+                    </div>
+                {% endif %}
             {% endif %}
         {% else %}
-            <h2>Re-open Ladder</h2>
-            <form method="POST">
-                {% csrf_token %}
-                <input class="btn btn-outline-info" type="submit" name="re_open" value="Re-Open Ladder">
-                {% if ladder.status == ladder.CANCELLED %}
-                    <input class="btn btn-outline-info" type="submit" name="delete_ladder" value="Delete Ladder">
-                {% endif %}
-            </form>
+            {% if perms.ladder.add_ladder %}
+                <h2>Re-open Ladder</h2>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input class="btn btn-outline-info" type="submit" name="re_open" value="Re-Open Ladder">
+                    {% if ladder.status == ladder.CANCELLED %}
+                        <input class="btn btn-outline-info" type="submit" name="delete_ladder" value="Delete Ladder">
+                    {% endif %}
+                </form>
+            {% endif %}
         {% endif %}
     </div>
     <div class="col-md-9">

@@ -1,44 +1,89 @@
 {% extends 'players/base.html' %}
 
 {% block content %}
+    <h2>{{ ladder.title }}</h2>
+    <h3>{{ ladder_round.start_date }} - {{ ladder_round.end_date }}</h3>
     <div class="container">
-        <ul class="progressbar">
-            <li><a href="{% url 'ladder-detail' ladder_round.ladder.id %}">Create Round</a></li>
-            <li><a href="{% url 'manage-players-in-round' ladder_round.id %}">Add Players to round</a></li>
-            <li><a href="{% url 'round-draw' ladder_round.id %}">Finalise Draw</a></li>
-            <li class="active">Capture Results</li>
-        </ul>
-    </div>
-    <div class="container">
-        <table>
-            <thead>
-                <tr>
-                    <th>
-                        Player 1
-                    </th>
-                    <th>
-                        Player 2
-                    </th>
-                    <th>
-                        Result
-                    </th>
-                </tr>
-            </thead>
-        {% for match in matches %}
-            <tr>
-                <td>
-                    {{ match.player1.first_name }} {{ match.player1.last_name }}
-                </td>
-                <td>
-                    {{ match.player2.first_name }} {{ match.player2.last_name }}
-                </td>
-                <td>
-                    {{ match.get_result_display }} ({{ match.games_for_player1 }} - {{ match.games_for_player2 }})
-                </td>
-            </tr>
+        <div class="row">
+            <div class="col-md-3 remove-padding-right">
+                {% for all_rounds in ladder_rounds %}
+                    <p class="{% if ladder_round.id == all_rounds.id %}results-bg-color{% endif %} ladder-round-results">
+                        <a href="{% url "view-results" all_rounds.id %}">Week {{ forloop.counter }}: {{ all_rounds.start_date }}-{{ all_rounds.end_date }}-{{ all_rounds.get_status_display }}</a>
+                    </p>
+                {% endfor %}
+            </div>
+            <div class="col-md-9 results-bg-color">
 
-        {% endfor %}
-        </table>
+
+                <table id="match-result-table" class="table">
+                    <thead>
+                    <tr>
+                        <th>
+                            Player 1
+                        </th>
+                        <th>
+                            Games
+                        </th>
+                        <th>
+                            Player 2
+                        </th>
+                        <th>
+                            Games
+                        </th>
+                        <th>
+                            Result
+                        </th>
+                    </tr>
+                    </thead>
+                    {% for match in matches %}
+                        <tr>
+                            {% if match.result == match.PLAYER_1_WON %}
+                                <td class="won-match">
+                                    <a href="{% url 'player-profile' match.player1.id %}">
+                                        {{ match.player1.first_name }} {{ match.player1.last_name }}
+                                    </a>
+                                </td>
+                                <td class="won-match">
+                                    {{ match.games_for_player1 }}
+                                </td>
+                            {% else %}
+                                <td class="lost-match">
+                                    <a href="{% url 'player-profile' match.player1.id %}">
+                                        {{ match.player1.first_name }} {{ match.player1.last_name }}
+                                    </a>
+                                </td>
+                                <td class="lost-match">
+                                    {{ match.games_for_player1 }}
+                                </td>
+                            {% endif %}
+                            {% if match.result == match.PLAYER_2_WON %}
+                                <td class="won-match">
+                                    <a href="{% url 'player-profile' match.player2.id %}">
+                                        {{ match.player2.first_name }} {{ match.player2.last_name }}
+                                    </a>
+                                </td>
+                                <td class="won-match">
+                                    {{ match.games_for_player2 }}
+                                </td>
+                            {% else %}
+                                <td class="lost-match">
+                                    <a href="{% url 'player-profile' match.player1.id %}">
+                                        {{ match.player2.first_name }} {{ match.player2.last_name }}
+                                    </a>
+                                </td>
+                                <td class="lost-match">
+                                    {{ match.games_for_player2 }}
+                                </td>
+                            {% endif %}
+                            <td>
+                                {{ match.get_result_display }}
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
     </div>
 
 

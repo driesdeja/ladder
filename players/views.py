@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from .models import Player
 from .forms import PlayerForm
 from round.utils import update_ladder_ranking
@@ -19,16 +19,6 @@ def edit_player(request, player_id):
     form = PlayerForm(request.POST or None)
     player = Player.objects.get(id=player_id)
     if request.POST:
-        if request.POST.get("delete") == 'Delete':
-            print('deleting ' + str(player))
-            update_ladder_ranking(player, 'delete', '')
-            player.delete()
-
-            context = {
-                'title': 'Player List',
-                'players': Player.objects.all().order_by('ranking')
-            }
-            return redirect('/players/', context)
         if form.is_valid():
             player.last_name = form.cleaned_data.get('last_name')
             player.first_name = form.cleaned_data.get('first_name')
@@ -37,11 +27,7 @@ def edit_player(request, player_id):
                 update_ladder_ranking(player, 'change', form.cleaned_data.get('ranking'))
             player.ranking = form.cleaned_data.get('ranking')
             player.save()
-        context = {
-            'title': 'Player List',
-            'players': Player.objects.all().order_by('ranking')
-        }
-        return redirect('/players/', context)
+        return redirect(list_players)
 
     context = {
         'form': form,

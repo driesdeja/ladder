@@ -120,6 +120,7 @@ class Match(models.Model):
     def __str__(self):
         return '\nDraw' \
                '\n\tRound: ' + str(self.ladder_round) + \
+                '\n\tDate Played: ' + str(self.date_played) + \
                '\n\tPlayer1: ' + self.player1.first_name + \
                '\n\tPlayer2: ' + self.player2.first_name + \
                '\n\tGames for Player1: ' + str(self.games_for_player1) + \

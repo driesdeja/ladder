@@ -142,8 +142,8 @@ def update_ladder_ranking(player, action, new_ranking):
                     for each_player in players:
                         each_player.ranking = each_player.ranking - 1
                         each_player.save()
-                    if new_ranking > players[len(players)-1].ranking:
-                        new_ranking = players[len(players)-1].ranking + 1
+                    if new_ranking > players[len(players) - 1].ranking:
+                        new_ranking = players[len(players) - 1].ranking + 1
                     player.ranking = new_ranking
                     player.save()
                 else:
@@ -238,18 +238,40 @@ def compare_and_update_player_with_playerranking(reason_for_change):
     return True
 
 
-def matches_player_played_in(player):
+def matches_player_played_in(player, ladder):
+    # todo: This is not the best way but it kinda works for now.
+    # need to be smarter on how to do this, polymorphism is dead!
+    if ladder is None:
+        matches_played_in_as_player1 = Match.objects.filter(player1=player) \
+            .filter(result__gt=Match.NOT_PLAYED) \
+            .order_by('-last_updated')
+
+        matches_played_in_as_player2 = Match.objects.filter(player2=player) \
+            .filter(result__gt=Match.NOT_PLAYED) \
+            .order_by('-last_updated')
+    else:
+        ladder_rounds = LadderRound.objects.all().filter(ladder=ladder)
+        matches_played_in_as_player1 = Match.objects.filter(player1=player) \
+            .filter(result__gt=Match.NOT_PLAYED) \
+            .filter(ladder_round__in=ladder_rounds) \
+            .order_by('-last_updated')
+
+        matches_played_in_as_player2 = Match.objects.filter(player2=player) \
+            .filter(result__gt=Match.NOT_PLAYED) \
+            .filter(ladder_round__in=ladder_rounds) \
+            .order_by('-last_updated')
     all_matches = []
-    matches_played_in_as_player1 = Match.objects.filter(player1=player).order_by('-last_updated')
-    matches_played_in_as_player2 = Match.objects.filter(player2=player).order_by('-last_updated')
 
     for match in matches_played_in_as_player1:
         result = get_match_result(match, 1)
 
         all_matches.append({
+            'ladder_id': ladder.id,
+            'ladder_round_id': match.ladder_round.id,
             'ladder_round': match.ladder_round.start_date,
             'date_played': match.date_played,
             'opponent': f'{match.player2.first_name} {match.player2.last_name}',
+            'opponent_id': match.player2.id,
             'games_for': match.games_for_player1,
             'games_against': match.games_for_player2,
             'result': result
@@ -257,9 +279,12 @@ def matches_player_played_in(player):
     for match in matches_played_in_as_player2:
         result = get_match_result(match, 2)
         all_matches.append({
+            'ladder_id': ladder.id,
+            'ladder_round_id': match.ladder_round.id,
             'ladder_round': match.ladder_round.start_date,
             'date_played': match.date_played,
             'opponent': f'{match.player1.first_name} {match.player1.last_name}',
+            'opponent_id': match.player1.id,
             'games_for': match.games_for_player2,
             'games_against': match.games_for_player1,
             'result': result
@@ -298,3 +323,46 @@ def get_match_result(match, player_number):
             result == 'Not played'
 
     return result
+
+
+def get_full_ladder_details(ladder):
+    full_details = {}
+    # Get all the players who have entered the ladder
+    all_player_matches = []
+    all_rounds = LadderRound.objects.all().filter(ladder=ladder).filter(
+        status__in=[LadderRound.CREATED, LadderRound.OPEN, LadderRound.CLOSED, LadderRound.COMPLETED]) \
+        .order_by('start_date')
+    all_players = list(Player.objects.all().order_by('ranking'))
+    for each_player in all_players:
+        player_matches = matches_player_played_in(each_player, ladder)
+        rounds_player_had_matches = []
+        for each_round in all_rounds:
+            games = []
+            for each_match in player_matches:
+                if each_round.id == each_match['ladder_round_id']:
+                    rounds_player_had_matches.append({'round_id': each_round.id,
+                                                      'games_for': each_match['games_for'],
+                                                      'result': each_match['result']})
+
+        all_player_matches.append({'player_id': each_player.id,
+                                   'player_ranking': each_player.ranking,
+                                   'player_name': f'{each_player.first_name} {each_player.last_name}',
+                                   'games': rounds_player_had_matches})
+    # get all the rounds for the ladder
+    # get all the results for the rounds that are complete
+    # for player in all_players:
+
+    full_details = {'title': ladder.title,
+                    'start_date': ladder.start_date,
+                    'rounds': [{
+                        'test': 'test'
+                    }]}
+    return all_player_matches
+
+
+def fix_date_played(matches):
+    for match in matches:
+        if match.date_played is None:
+            match.date_played = datetime.today()
+            match.save()
+    return True

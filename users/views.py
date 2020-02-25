@@ -47,7 +47,9 @@ def profile(request):
         ladders_competed_in.append(Ladder.objects.get(id=ladder_round.ladder.id))
     set_ladders = set(ladders_competed_in)
     ladders_competed_in = list(set_ladders)
-    matches_played_in = matches_player_played_in(request.user.profile.player)
+    matches_played_in = []
+    for each_ladder in ladders_competed_in:
+        matches_played_in.extend(matches_player_played_in(request.user.profile.player, each_ladder))
     context = {
         'player_rankings': player_rankings,
         'ladders_competed_in': ladders_competed_in,

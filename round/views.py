@@ -9,12 +9,13 @@ from .models import Match
 from .models import Ladder
 from .models import Match
 from .models import MatchResult
+from .models import PlayerRanking
 from datetime import date, datetime
 from .forms import LadderForm, LadderRoundForm, MatchForm, LadderStatusForm
 from players.models import Player
 from .utils import validate_match_results, get_players_in_round, get_players_not_in_round, setup_matches_for_draw, \
-    add_player_to_round, compare_and_update_player_with_playerranking
-from round.utils import calculate_change_in_ranking, update_ladder_ranking
+    add_player_to_round, compare_and_update_player_with_playerranking, get_full_ladder_details
+from round.utils import calculate_change_in_ranking, update_ladder_ranking, matches_player_played_in
 from players.views import list_players
 
 
@@ -56,7 +57,6 @@ def ladder_admin(request):
 
 
 def ladder_detail(request, ladder_id):
-
     form = LadderRoundForm(request.POST or None)
     ladder = Ladder.objects.get(id=ladder_id)
     rounds = list(LadderRound.objects.filter(ladder=ladder).order_by('start_date'))
@@ -98,7 +98,7 @@ def ladder_detail(request, ladder_id):
     context = {
         'form': form,
         'closeable': closeable,
-        'ladder_close_form' : ladder_close_form,
+        'ladder_close_form': ladder_close_form,
         'ladder': ladder,
         'rounds': rounds
     }
@@ -254,7 +254,8 @@ def capture_results(request, round_id):
                             date_str = request.POST.get('match[' + form_match + '][date-played]')
                             date_obj = datetime.strptime(date_str, '%Y-%m-%d')
                             match.date_played = date_obj
-                            match.date_played = datetime.strptime(request.POST.get('match[' + form_match + '][date-played]'), '%Y-%m-%d')
+                            match.date_played = datetime.strptime(
+                                request.POST.get('match[' + form_match + '][date-played]'), '%Y-%m-%d')
                         else:
                             match.date_played = date.today()
                         errors = validate_match_results(match)
@@ -290,10 +291,14 @@ def capture_results(request, round_id):
 
 def view_round_results(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
+    ladder = ladder_round.ladder
     matches = Match.objects.filter(ladder_round=ladder_round)
-
+    ladder_rounds = list(
+        LadderRound.objects.filter(ladder__exact=ladder).filter(status__in=[LadderRound.COMPLETED, LadderRound.CLOSED]))
     context = {
         'ladder_round': ladder_round,
+        'ladder_rounds': ladder_rounds,
+        'ladder': ladder,
         'matches': matches
     }
     return render(request, 'round/view-results.html', context)
@@ -356,11 +361,41 @@ def update_players_ranking(request, round_id):
 
 
 def ladder_overview(request):
-    ladders = Ladder.objects.filter(status=Ladder.OPEN)
-
+    open_ladder = Ladder.objects.filter(status=Ladder.OPEN).first()
+    ladder_rounds = list(LadderRound.objects.filter(ladder__exact=open_ladder))
     players = Player.objects.all().order_by('ranking')
+    full_ladder_details = get_full_ladder_details(open_ladder)
     context = {
-        'ladders': ladders,
-        'players': players
+        'ladder': open_ladder,
+        'ladder_rounds': ladder_rounds,
+        'players': players,
+        'full_ladder_details': full_ladder_details
     }
     return render(request, 'round/ladder-overview.html', context)
+
+
+def player_profile(request, player_id):
+    player = Player.objects.get(id=player_id)
+    player_rankings = PlayerRanking.objects.filter(player=player).order_by('-last_updated')
+    competed_in_rounds = PlayersInLadderRound.objects.filter(player=player)
+
+    ladder_rounds_competed_in = []
+    for competed_in_round in competed_in_rounds:
+        ladder_rounds_competed_in.append(competed_in_round.ladder_round)
+    ladders_competed_in = []
+    for ladder_round in ladder_rounds_competed_in:
+        ladders_competed_in.append(Ladder.objects.get(id=ladder_round.ladder.id))
+    set_ladders = set(ladders_competed_in)
+    ladders_competed_in = list(set_ladders)
+    matches_played_in = []
+    for each_ladder in ladders_competed_in:
+        matches_played_in.extend(matches_player_played_in(player, each_ladder))
+    context = {
+        'player': player,
+        'player_rankings': player_rankings,
+        'ladders_competed_in': ladders_competed_in,
+        'ladder_rounds_competed_in': ladder_rounds_competed_in,
+        'matches': matches_played_in
+    }
+
+    return render(request, 'round/player_profile.html', context)

@@ -5,7 +5,7 @@
 
 /* Set black background color, white text and some padding */
 footer {
-    background-color: #555;
+    background-color: #F2F2F2;
     color: white;
     padding: 15px;
 }
@@ -124,4 +124,29 @@ footer {
 
 .side-panel-form {
     max-width: 100%;
+}
+
+.won-match {
+    font-weight: 400;
+    color: green;
+    background-color: #dddddd;
+}
+
+.lost-match {
+    font-weight: 400;
+    color: red;
+    background-color: blanchedalmond;
+}
+
+.results-bg-color {
+    background-color: #F8F8F8;
+}
+
+.remove-padding-right {
+    padding-right: 0px !important;
+}
+
+.ladder-round-results {
+    height: 40px;
+    padding-top: 10px;
 }

@@ -23,4 +23,4 @@ class UserUpdateForm(forms.ModelForm):
 class PlayerUpdateForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ['first_name', 'last_name','contact_number']
+        fields = ['first_name', 'last_name',  'contact_number']

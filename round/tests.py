@@ -1,8 +1,9 @@
 from django.test import TestCase
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from .models import PlayersInLadderRound, Ladder, LadderRound, Match, MatchResult
 from players.models import Player
-from .utils import add_player_to_round, ensure_player_not_already_in_round, ranking_change, update_ladder_ranking
+from .utils import add_player_to_round, ensure_player_not_already_in_round, ranking_change, update_ladder_ranking, \
+    get_full_ladder_details
 
 
 # Create your tests here.
@@ -10,14 +11,20 @@ class RoundUtilsTestCase(TestCase):
 
     def setUp(self):
         self.list_of_players = []
-        Player.objects.create(first_name='Prince', last_name='Charming', contact_number='021329015', ranking=1)
-        Player.objects.create(first_name='Lord', last_name='Farquaad', contact_number='021329015', ranking=2)
-        Player.objects.create(first_name='Princess', last_name='Fiona', contact_number='021329015', ranking=3)
-        Player.objects.create(first_name='Mickey', last_name='Mouse', contact_number='021329015', ranking=4)
-        Player.objects.create(first_name='Tinker', last_name='Bell', contact_number='021329015', ranking=5)
-        Player.objects.create(first_name='Peter', last_name='Pan', contact_number='021329015', ranking=6)
-        Player.objects.create(first_name='Robin', last_name='Hood', contact_number='021329015', ranking=7)
-        Player.objects.create(first_name='Tom', last_name='Thumb', contact_number='021329015', ranking=8)
+        self.player1 = Player.objects.create(first_name='Prince', last_name='Charming', contact_number='021329015',
+                                             ranking=1)
+        self.player2 = Player.objects.create(first_name='Princess', last_name='Fiona', contact_number='021329015',
+                                             ranking=3)
+        self.player3 = Player.objects.create(first_name='Mickey', last_name='Mouse', contact_number='021329015',
+                                             ranking=4)
+        self.player4 = Player.objects.create(first_name='Tinker', last_name='Bell', contact_number='021329015',
+                                             ranking=5)
+        self.player5 = Player.objects.create(first_name='Peter', last_name='Pan', contact_number='021329015', ranking=6)
+        self.player6 = Player.objects.create(first_name='Lord', last_name='Farquaad', contact_number='021329015',
+                                             ranking=2)
+        self.player7 = Player.objects.create(first_name='Robin', last_name='Hood', contact_number='021329015',
+                                             ranking=7)
+        self.player8 = Player.objects.create(first_name='Tom', last_name='Thumb', contact_number='021329015', ranking=8)
 
         self.list_of_players = Player.objects.all()
 
@@ -25,10 +32,155 @@ class RoundUtilsTestCase(TestCase):
 
         self.ladder_round = LadderRound.objects.create(start_date=date.today(), ladder=self.ladder)
 
-        Match.objects.create(player1=Player.objects.get(ranking=1), player2=Player.objects.get(ranking=2), ladder_round=LadderRound.objects.all().first())
-        Match.objects.create(player1=Player.objects.get(ranking=3), player2=Player.objects.get(ranking=4), ladder_round=LadderRound.objects.all().first())
-        Match.objects.create(player1=Player.objects.get(ranking=5), player2=Player.objects.get(ranking=6), ladder_round=LadderRound.objects.all().first())
-        Match.objects.create(player1=Player.objects.get(ranking=7), player2=Player.objects.get(ranking=8), ladder_round=LadderRound.objects.all().first())
+        match1 = Match.objects.create(player1=Player.objects.get(ranking=1), player2=Player.objects.get(ranking=2),
+                                      ladder_round=LadderRound.objects.all().first())
+        match2 = Match.objects.create(player1=Player.objects.get(ranking=3), player2=Player.objects.get(ranking=4),
+                                      ladder_round=LadderRound.objects.all().first())
+        match3 = Match.objects.create(player1=Player.objects.get(ranking=5), player2=Player.objects.get(ranking=6),
+                                      ladder_round=LadderRound.objects.all().first())
+        match4 = Match.objects.create(player1=Player.objects.get(ranking=7), player2=Player.objects.get(ranking=8),
+                                      ladder_round=LadderRound.objects.all().first())
+
+        match1.games_for_player1 = 3
+        match1.games_for_player2 = 0
+        match1.result = Match.PLAYER_1_WON
+        match1.date_played = datetime.now()
+        match1.save()
+
+        match2.games_for_player1 = 3
+        match2.games_for_player2 = 0
+        match2.date_played = datetime.now()
+        match2.result = Match.PLAYER_1_WON
+        match2.save()
+
+        match3.games_for_player1 = 2
+        match3.games_for_player2 = 3
+        match3.date_played = datetime.now()
+        match3.result = Match.PLAYER_2_WON
+        match3.save()
+
+        match4.games_for_player1 = 1
+        match4.games_for_player2 = 3
+        match4.date_played = datetime.now()
+        match4.result = Match.PLAYER_2_WON
+        match4.save()
+
+        last_week_round = LadderRound.objects.create(start_date=datetime.today() - timedelta(days=7),
+                                                     end_date=datetime.today() - timedelta(days=1),
+                                                     ladder=self.ladder)
+        # create one that started 2 weeks ago
+        two_weeks_ago_round = LadderRound.objects.create(start_date=datetime.today() - timedelta(days=14),
+                                                         end_date=datetime.today() - timedelta(days=6),
+                                                         ladder=self.ladder)
+        # create one that started 3 weeks ago
+        three_weeks_ago_round = LadderRound.objects.create(start_date=datetime.today() - timedelta(days=21),
+                                                           end_date=datetime.today() - timedelta(days=13),
+                                                           ladder=self.ladder)
+
+        # populate the rounds with Matches
+
+        match1 = Match.objects.create(player1=Player.objects.get(ranking=1), player2=Player.objects.get(ranking=2),
+                                      ladder_round=last_week_round)
+        match2 = Match.objects.create(player1=Player.objects.get(ranking=3), player2=Player.objects.get(ranking=4),
+                                      ladder_round=last_week_round)
+        match3 = Match.objects.create(player1=Player.objects.get(ranking=5), player2=Player.objects.get(ranking=6),
+                                      ladder_round=last_week_round)
+        match4 = Match.objects.create(player1=Player.objects.get(ranking=7), player2=Player.objects.get(ranking=8),
+                                      ladder_round=last_week_round)
+
+        match1.games_for_player1 = 1
+        match1.games_for_player2 = 3
+        match1.result = Match.PLAYER_2_WON
+        match1.date_played = datetime.now() - timedelta(days=3)
+        match1.save()
+
+        match2.games_for_player1 = 3
+        match2.games_for_player2 = 0
+        match2.date_played = datetime.now() - timedelta(days=3)
+        match2.result = Match.PLAYER_1_WON
+        match2.save()
+
+        match3.games_for_player1 = 2
+        match3.games_for_player2 = 3
+        match3.date_played = datetime.now() - timedelta(days=3)
+        match3.result = Match.PLAYER_2_WON
+        match3.save()
+
+        match4.games_for_player1 = 1
+        match4.games_for_player2 = 3
+        match4.date_played = datetime.now() - timedelta(days=3)
+        match4.result = Match.PLAYER_2_WON
+        match4.save()
+
+        # populate the rounds with Matches
+
+        match1 = Match.objects.create(player1=Player.objects.get(ranking=1), player2=Player.objects.get(ranking=2),
+                                      ladder_round=two_weeks_ago_round)
+        match2 = Match.objects.create(player1=Player.objects.get(ranking=3), player2=Player.objects.get(ranking=4),
+                                      ladder_round=two_weeks_ago_round)
+        match3 = Match.objects.create(player1=Player.objects.get(ranking=5), player2=Player.objects.get(ranking=6),
+                                      ladder_round=two_weeks_ago_round)
+        match4 = Match.objects.create(player1=Player.objects.get(ranking=7), player2=Player.objects.get(ranking=8),
+                                      ladder_round=two_weeks_ago_round)
+
+        match1.games_for_player1 = 1
+        match1.games_for_player2 = 3
+        match1.result = Match.PLAYER_2_WON
+        match1.date_played = datetime.now() - timedelta(days=3)
+        match1.save()
+
+        match2.games_for_player1 = 3
+        match2.games_for_player2 = 0
+        match2.date_played = datetime.now() - timedelta(days=3)
+        match2.result = Match.PLAYER_1_WON
+        match2.save()
+
+        match3.games_for_player1 = 2
+        match3.games_for_player2 = 3
+        match3.date_played = datetime.now() - timedelta(days=3)
+        match3.result = Match.PLAYER_2_WON
+        match3.save()
+
+        match4.games_for_player1 = 1
+        match4.games_for_player2 = 3
+        match4.date_played = datetime.now() - timedelta(days=3)
+        match4.result = Match.PLAYER_2_WON
+        match4.save()
+
+        # populate the rounds with Matches
+
+        match1 = Match.objects.create(player1=Player.objects.get(ranking=1), player2=Player.objects.get(ranking=2),
+                                      ladder_round=three_weeks_ago_round)
+        match2 = Match.objects.create(player1=Player.objects.get(ranking=3), player2=Player.objects.get(ranking=4),
+                                      ladder_round=three_weeks_ago_round)
+        match3 = Match.objects.create(player1=Player.objects.get(ranking=5), player2=Player.objects.get(ranking=6),
+                                      ladder_round=three_weeks_ago_round)
+        match4 = Match.objects.create(player1=Player.objects.get(ranking=7), player2=Player.objects.get(ranking=8),
+                                      ladder_round=three_weeks_ago_round)
+
+        match1.games_for_player1 = 1
+        match1.games_for_player2 = 3
+        match1.result = Match.PLAYER_2_WON
+        match1.date_played = datetime.now() - timedelta(days=3)
+        match1.save()
+
+        match2.games_for_player1 = 3
+        match2.games_for_player2 = 0
+        match2.date_played = datetime.now() - timedelta(days=3)
+        match2.result = Match.PLAYER_1_WON
+        match2.save()
+
+        match3.games_for_player1 = 2
+        match3.games_for_player2 = 3
+        match3.date_played = datetime.now() - timedelta(days=3)
+        match3.result = Match.PLAYER_2_WON
+        match3.save()
+
+        match4.games_for_player1 = 1
+        match4.games_for_player2 = 3
+        match4.date_played = datetime.now() - timedelta(days=3)
+        match4.result = Match.PLAYER_2_WON
+        match4.save()
 
     def test_add_player_to_round(self):
         add_player_to_round(self.ladder_round.id, Player.objects.get(first_name='Tom'))
@@ -97,8 +249,18 @@ class RoundUtilsTestCase(TestCase):
     # ensure that the Matches are always processed from the highest ranked player to the lowest rank.
     # that might be something to test that the ranking results are predictable.
     def test_capture_match_results(self):
-
         matches = Match.objects.all()
         for match in matches:
             print(match)
         self.assertTrue(True)
+
+    def test_get_full_ladder_details(self):
+        # add additional LadderRounds
+        # create one that started a week ago
+
+        ladder = Ladder.objects.all().first()
+        ladder_rounds = list(LadderRound.objects.all().filter(ladder=ladder))
+        ladder_details = get_full_ladder_details(ladder)
+        print(ladder_details)
+
+        self.assertIsNotNone(self, ladder_details)

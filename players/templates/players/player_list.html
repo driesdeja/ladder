@@ -1,8 +1,10 @@
 {% extends "players/base.html" %}
 {% block content %}
     {% if user.is_authenticated %}
-    <a href="{% url 'create-player' %}">Add Player</a>
-    <a href="{% url 'reset-rankings' %}">Reset Ranking</a>
+        {% if perms.players.add_player %}
+            <a href="{% url 'create-player' %}">Add Player</a>
+            <a href="{% url 'reset-rankings' %}">Reset Ranking</a>
+            {% endif %}
     {% endif %}
     <table class="table text-left">
         <thead>
@@ -11,15 +13,17 @@
             <th scope="col">First</th>
             <th scope="col">Last</th>
             <th scope="col">Contact Number</th>
-            <th scope="col">Edit</th>
+            {% if perms.players.add_player %}
+                <th scope="col">Edit</th>
+            {% endif %}
         </tr>
         </thead>
         <tbody>
         {% for player in players %}
             <tr id="{{ player.id }}">
                 <td>{{ player.ranking }}</td>
-                <td>{{ player.first_name }}</td>
-                <td>{{ player.last_name }}</td>
+                <td><a href="{% url 'player-profile' player.id %}">{{ player.first_name }}</a></td>
+                <td><a href="{% url 'player-profile' player.id %}">{{ player.last_name }}</a></td>
                 <td>
                     {% if user.is_authenticated %}
                         {{ player.contact_number }}
@@ -27,13 +31,11 @@
                         ###########
                     {% endif %}
                 </td>
+                {% if perms.players.add_player %}
                 <td>
-                    {% if user.is_authenticated %}
                         <a href="{% url 'edit-player' player.id %}">Edit</a>
-                    {% else %}
-                        #######
-                    {% endif %}
                 </td>
+                {% endif %}
             </tr>
         {% endfor %}
 
