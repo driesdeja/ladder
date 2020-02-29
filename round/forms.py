@@ -21,6 +21,7 @@ class LadderStatusForm(forms.ModelForm):
             'end_date',
         ]
 
+
 class LadderRoundForm(forms.ModelForm):
 
     class Meta:
@@ -40,7 +41,12 @@ class LadderRoundForm(forms.ModelForm):
         if not start_date >= datetime.date.today():
             raise forms.ValidationError(
                 "Rounds can only be future dated")
-        ladder_rounds = LadderRound.objects.filter(ladder=ladder)
+        ladder_rounds = list(LadderRound.objects.filter(ladder=ladder).filter(end_date__gte=start_date))
+
+        if len(ladder_rounds) > 0:
+            raise forms.ValidationError(
+                'Rounds may not overlap.  Start date is before a previous round\'s end date!'
+            )
 
         return start_date
 

@@ -16,9 +16,21 @@
                 <h2>Add round to ladder:</h2>
                 <form method="POST">
                     {% csrf_token %}
-                    {{ form.start_date }}
-                    {{ form.end_date }}
-                    <input class="btn btn-outline-info" type="submit" id="add_round" value="Add Round">
+                    {{ form.non_field_errors }}
+                    <div class="fieldWrapper">
+                        {% if form.start_date.errors %}
+                            {% for error in form.start_date.errors %}
+                                <p class="error">{{ error|escape }}</p>
+                            {% endfor %}
+                        {% endif %}
+                        {{ form.start_date }}
+                    </div>
+                    <div class="fieldWrapper">
+                        {{ form.end_date.errors }}
+                        {{ form.end_date }}
+                    </div>
+                    <input type="hidden" name="ladder" id="id_ladder" value="{{ ladder.id }}"/>
+                    <input class="btn btn-outline-info" type="submit" name="add_round" value="Add Round">
                 </form>
                 {% if closeable %}
                     <div class="side-panel-form">

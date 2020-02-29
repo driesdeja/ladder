@@ -7,7 +7,7 @@
     <p>Status: {{ ladder_round.get_status_display }}</p>
     <p>End Date: {{ ladder_round.end_date }}</p>
 
-    <div class="col-md-3">
+    <div class="col-md">
         Copy players from previous round?
         {% if previous_rounds %}
             <form method="POST">
@@ -19,35 +19,10 @@
                         </option>
                     {% endfor %}
                 </select>
-                <input class="btn btn-info" type="submit" value="Copy players into Round"/>
+                <input class="btn btn-info" type="submit" name="copy_players" value="Copy players into Round"/>
             </form>
         {% endif %}
-
-
-
-        <p></p>
-
     </div>
-    <div class="col-md-9">
-        <table class="table">
-            <thead>
-            <tr>
-                <th scope="col">Ladder Ranking</th>
-                <th scope="col">First Name</th>
-                <th scope="col">Last Name</th>
-            </tr>
-            </thead>
-            <tbody>
-                {% for player in players %}
-                    <tr>
-                    <td>{{ player.ranking }}</td>
-                    <td>{{ player.first_name }}</td>
-                    <td>{{ player.last_name }}</td>
-                    </tr>
 
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
 
 {% endblock content %}

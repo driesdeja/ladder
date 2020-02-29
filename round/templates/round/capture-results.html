@@ -40,7 +40,12 @@
                             </td>
                             <td>
                                 {% if match.result == match.NOT_PLAYED %}
-                                    <input type="text" name="match[{{ match.id }}][player1-games]"/>
+                                    <select name="match[{{ match.id }}][player1-games]">
+                                        <option value="0">0</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                    </select>
                                 {% else %}
                                     {{ match.games_for_player1 }}
                                 {% endif %}
@@ -60,7 +65,12 @@
                             </td>
                             <td>
                                 {% if match.result == match.NOT_PLAYED %}
-                                    <input type="text" name="match[{{ match.id }}][player2-games]"/>
+                                    <select name="match[{{ match.id }}][player2-games]">
+                                        <option value="0">0</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                    </select>
                                 {% else %}
                                     {{ match.games_for_player2 }}
                                 {% endif %}
@@ -86,7 +96,7 @@
                             <td>
                                 {% if match.result == match.NOT_PLAYED %}
                                     <input type="date" name="match[{{ match.id }}][date-played]"
-                                       value={% now "SHORT_DATE_FORMAT" %}">
+                                       value={% now "SHORT_DATE_FORMAT" %}>
                                 {% else %}
                                     {{ match.date_played|date:'d-m-Y' }}
                                 {% endif %}
@@ -115,7 +125,7 @@
                         <input class="btn" type="submit" name="save_results" value="Save Results">
                     {% endif %}
                 {% endif %}
-
+            </div>
         </form>
         </div>
     {% endif %}
