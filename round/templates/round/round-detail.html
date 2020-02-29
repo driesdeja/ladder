@@ -1,26 +1,79 @@
 {% extends 'players/base.html' %}
 
 {% block content %}
-    <div class="container">
-        {% include 'round/ladder-admin-nav.html' %}
-    </div>
+    {% if perms.round.can_administrate_ladder %}
+        <div class="container">
+            {% include 'round/ladder-admin-nav.html' %}
+        </div>
+    {% endif %}
     <p>Status: {{ ladder_round.get_status_display }}</p>
     <p>End Date: {{ ladder_round.end_date }}</p>
 
     <div class="col-md">
-        Copy players from previous round?
-        {% if previous_rounds %}
-            <form method="POST">
-                {% csrf_token %}
-                <select type="select" name="previous_round">
-                    {% for previous_round in previous_rounds %}
-                        <option value="{{ previous_round.id }}">
-                            {{ previous_round.start_date }} - {{ previous_round.end_date }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <input class="btn btn-info" type="submit" name="copy_players" value="Copy players into Round"/>
-            </form>
+        {% if players %}
+            Players scheduled to play in the round:
+
+            {% if user.profile.player in players %}
+                You are scheduled to play in this round.
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="player_id" value="{{ user.profile.player.id }}">
+                    <input type="submit" name="leave_round" value="Leave Round">
+                </form>
+            {% else %}
+                You have not entered this round.
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="player_id" value="{{ user.profile.player.id }}">
+                    <input type="submit" name="enter_round" value="Enter Round">
+                </form>
+            {% endif %}
+            <table class="table">
+                <tr>
+                    <th>Ranking (In Round)</th>
+                    <th>Name</th>
+                    <th>Contact Number</th>
+                </tr>
+                {% for player in players %}
+                {% if user.profile.player == player %}
+                <tr class="table-info">
+                {% else %}
+                    <tr>
+                {% endif %}
+                        <td>
+                            {{ forloop.counter }}
+                        </td>
+                        <td>
+                        {{ player.first_name }} {{ player.last_name }}
+                        </td>
+                        <td>
+                            {% if user.is_authenticated %}
+                                {{ player.contact_number }}
+                            {% else %}
+                                ###########
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                {% endfor %}
+            </table>
+        {% else %}
+            {% if perms.round.can_administrate_ladder %}
+                Copy players from previous round?
+                {% if previous_rounds %}
+                    <form method="POST">
+                        {% csrf_token %}
+                        <select type="select" name="previous_round">
+                            {% for previous_round in previous_rounds %}
+                                <option value="{{ previous_round.id }}">
+                                    {{ previous_round.start_date }} - {{ previous_round.end_date }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <input class="btn btn-info" type="submit" name="copy_players" value="Copy players into Round"/>
+                    </form>
+                {% endif %}
+            {% endif %}
         {% endif %}
     </div>
 

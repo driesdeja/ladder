@@ -14,7 +14,7 @@ from datetime import date, datetime
 from .forms import LadderForm, LadderRoundForm, MatchForm, LadderStatusForm
 from players.models import Player
 from .utils import validate_match_results, get_players_in_round, get_players_not_in_round, setup_matches_for_draw, \
-    add_player_to_round, compare_and_update_player_with_playerranking, get_full_ladder_details
+    add_player_to_round, compare_and_update_player_with_playerranking, get_full_ladder_details, remove_player_from_round
 from round.utils import calculate_change_in_ranking, update_ladder_ranking, matches_player_played_in
 from players.views import list_players
 
@@ -111,8 +111,6 @@ def round_detail(request, round_id):
 
     ladder_round = LadderRound.objects.get(id=round_id)
     players = get_players_in_round(ladder_round)
-    if len(players) > 0:
-        return redirect(manage_players_in_round, round_id)
     if request.POST.get('copy_players'):
         previous_round_id = request.POST.get('previous_round')
         previous_round = LadderRound.objects.get(id=previous_round_id)
@@ -122,7 +120,16 @@ def round_detail(request, round_id):
         ladder_round.status = ladder_round.OPEN
         ladder_round.save()
         return redirect(manage_players_in_round, round_id)
-
+    if request.POST.get('leave_round'):
+        player_id = request.POST.get('player_id')
+        player = Player.objects.get(id=player_id)
+        remove_player_from_round(round_id, player)
+        return redirect(round_detail, round_id)
+    if request.POST.get('enter_round'):
+        player_id = request.POST.get('player_id')
+        player = Player.objects.get(id=player_id)
+        add_player_to_round(round_id, player_id )
+        return redirect(round_detail, round_id)
     previous_rounds = LadderRound.objects.filter(ladder=ladder_round.ladder, status__exact=LadderRound.COMPLETED)
     context = {
         'ladder_round': ladder_round,

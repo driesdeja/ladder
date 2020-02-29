@@ -86,6 +86,14 @@ def add_player_to_round(round_id, player):
     player_to_add.save()
 
 
+def remove_player_from_round(round_id, player):
+    if isinstance(player, Player):
+        player_to_remove = PlayersInLadderRound.objects.get(player=player)
+    else:
+        player_to_remove = PlayersInLadderRound.objects.get(player=Player.objects.get(id=player))
+    player_to_remove.delete()
+
+
 def update_ladder_ranking(player, action, new_ranking):
     """This action only occurs when a player is added for the first time."""
     if action == 'add':

@@ -7,7 +7,11 @@
                 {{ ladder.title }}
                 {% for ladder_round in ladder_rounds %}
                     <p>
-                        <a href="{% url "view-results" ladder_round.id %}">Week {{ forloop.counter }} {{ ladder_round.get_status_display }}</a>
+                        {% if ladder_round.status == ladder_round.COMPLETED %}
+                            <a href="{% url "view-results" ladder_round.id %}">Week {{ forloop.counter }} {{ ladder_round.get_status_display }}</a>
+                        {% else %}
+                            <a href="{% url "round-detail" ladder_round.id %}">Week {{ forloop.counter }} {{ ladder_round.get_status_display }}</a>
+                        {% endif %}
                     </p>
                 {% endfor %}
             </div>
