@@ -1,65 +1,77 @@
 {% extends 'players/base.html' %}
 
 {% block content %}
+    <div class="panel">
+        <div class="panel-heading">{{ ladder.title }}</div>
+        <div class="panel-body">{{ ladder.start_date }} - {{ ladder.end_date }}</div>
+    </div>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-3">
-                {{ ladder.title }}
-                {% for ladder_round in ladder_rounds %}
-                    <p>
-                        {% if ladder_round.status == ladder_round.COMPLETED %}
-                            <a href="{% url "view-results" ladder_round.id %}">Week {{ forloop.counter }} {{ ladder_round.get_status_display }}</a>
-                        {% else %}
-                            <a href="{% url "round-detail" ladder_round.id %}">Week {{ forloop.counter }} {{ ladder_round.get_status_display }}</a>
-                        {% endif %}
-                    </p>
-                {% endfor %}
-            </div>
-            <div class="col-md-9">
-                <table class="table">
-                    <thead>
-                    <th>Ranking</th>
-                    <th>Player</th>
+            <div class="col-md-3 pl-0 pr-0 pt-2">
+                <div class="nav-left">
+
                     {% for ladder_round in ladder_rounds %}
-                        <th>{{ ladder_round.end_date }}</th>
+
+                        {% if ladder_round.status == ladder_round.COMPLETED %}
+                            <a href="{% url "view-results" ladder_round.id %}"
+                               class="">Week {{ forloop.counter }}
+                                - {{ ladder_round.start_date }} {{ ladder_round.get_status_display }}</a>
+                        {% else %}
+                            <a href="{% url "round-detail" ladder_round.id %}"
+                               class="">Week {{ forloop.counter }}
+                                - {{ ladder_round.start_date }} {{ ladder_round.get_status_display }}</a>
+                        {% endif %}
+
                     {% endfor %}
-                    </thead>
-                    <tbody>
+                </div>
+            </div>
+            <div class="col-md-9 pt-2 pr-0">
+                <div class="content-panel">
+                    <table class="ladder-overview">
+                        <thead>
+                        <th>Ranking</th>
+                        <th>Player</th>
+                        {% for ladder_round in ladder_rounds %}
+                            <th class="vertical-table-header">{{ ladder_round.end_date|date:"j M" }}</th>
+                        {% endfor %}
+                        </thead>
+                        <tbody>
 
 
-                    {% for each_player in full_ladder_details %}
-                        <tr>
-                            <td>
-                                {{ each_player.player_ranking }}
-                            </td>
-                            <td>
-
-                                <a href="{% url 'player-profile' each_player.player_id  %}">
-                                    {{ each_player.player_name }}
-                                </a>
-                            </td>
-
-                            {% for ladder_round in ladder_rounds %}
+                        {% for each_player in full_ladder_details %}
+                            <tr>
+                                <td class="text-align-center">
+                                    {{ each_player.player_ranking }}
+                                </td>
                                 <td>
 
-                                    {% for each_game in each_player.games %}
-                                        {% if each_game.round_id == ladder_round.id %}
-                                            {{ each_game.games_for }}
-
-                                        {% endif %}
-
-                                    {% endfor %}
-
+                                    <a href="{% url 'player-profile' each_player.player_id %}">
+                                        {{ each_player.player_name }}
+                                    </a>
                                 </td>
-                            {% endfor %}
-                        </tr>
+
+                                {% for ladder_round in ladder_rounds %}
+                                    {% if ladder_round.status == ladder_round.COMPLETED %}
+                                    <td class="text-align-center">{% spaceless %}
+                                        {% for each_game in each_player.games %}
+                                            {% if each_game.round_id == ladder_round.id %}
+                                                {{ each_game.games_for }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endspaceless %}</td>
+                                    {% else %}
+                                        <td>&nbsp;</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
 
 
-                    {% endfor %}
+                        {% endfor %}
 
 
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

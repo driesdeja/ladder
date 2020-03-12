@@ -1,5 +1,26 @@
 .main {
-    padding-top: 65px;
+    background-color: #ffffff;
+    border-radius: 25px;
+    padding-top: 10px;
+}
+
+body {
+    background-color: #333333;
+}
+
+header {
+    margin-top: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: #EFEFEF;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+#navigation-section {
+    margin-top: 10px;
+    background-color: #CD6620;
+    border-radius: 5px;
 }
 
 
@@ -10,55 +31,141 @@ footer {
     padding: 15px;
 }
 
-.container {
-  width: 100%;
+.nav-link {
+    color: white;
 }
 
+.nav-link:hover {
+    color: black;
+}
+
+.panel {
+    padding: 10px;
+    background-color: #EFEFEF;
+    border-radius: 5px;
+}
+
+.panel-heading {
+    font-weight: bold;
+}
+
+.nav-left {
+    padding-top: 5px;
+    padding-left: 0px;
+    background-color: #CD6620;
+    border-radius: 5px;
+}
+
+.nav-left a {
+    padding: 5px 20px 5px 10px;
+    text-decoration: none;
+    font-size: 15px;
+    color: #ffffff;
+    display: block;
+}
+
+.nav-left a:hover {
+    color: #000000;
+}
+
+.content-panel {
+    padding-top: 5px;
+    padding-left: 5px;
+    background-color: #EFEFEF;
+    border-radius: 5px;
+}
+
+.ladder-overview {
+
+}
+.ladder-overview a {
+    text-decoration: none;
+    color: #CD6620;
+}
+
+.ladder-overview a:hover {
+    color: black;
+}
+.ladder-overview tr {
+    border: 1px solid black;
+}
+
+.ladder-overview td:empty:before {
+    content: 'DNP';
+}
+.text-align-center {
+    text-align: center;
+}
+
+.vertical-table-header {
+    text-align:center;
+    white-space:nowrap;
+    font-size: 15px;
+    transform-origin:50% 50%;
+    transform: rotate(90deg);
+
+}
+.vertical-table-header:before {
+    content:'';
+    padding-top:110%;/* takes width as reference, + 10% for faking some extra padding */
+    display:inline-block;
+    vertical-align:middle;
+}
+
+
+
 .progressbar {
-  counter-reset: step;
+    counter-reset: step;
 }
+
 .progressbar li {
-  list-style: none;
-  display: inline-block;
-  width: 24%;
-  position: relative;
-  text-align: center;
-  cursor: pointer;
+    list-style: none;
+    display: inline-block;
+    width: 24%;
+    position: relative;
+    text-align: center;
+    cursor: pointer;
 }
+
 .progressbar li:before {
-  content: counter(step);
-  counter-increment: step;
-  width: 30px;
-  height: 30px;
-  line-height : 30px;
-  border: 1px solid #ddd;
-  border-radius: 100%;
-  display: block;
-  text-align: center;
-  margin: 0 auto 10px auto;
-  background-color: #fff;
+    content: counter(step);
+    counter-increment: step;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    border: 1px solid #ddd;
+    border-radius: 100%;
+    display: block;
+    text-align: center;
+    margin: 0 auto 10px auto;
+    background-color: #fff;
 }
+
 .progressbar li:after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  height: 1px;
-  background-color: #ddd;
-  top: 15px;
-  left: -50%;
-  z-index : -1;
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 1px;
+    background-color: #ddd;
+    top: 15px;
+    left: -50%;
+    z-index: -1;
 }
+
 .progressbar li:first-child:after {
-  content: none;
+    content: none;
 }
+
 .progressbar li.active {
-  color: green;
+    color: green;
 }
+
 .progressbar li.active:before {
-  border-color: green;
+    border-color: green;
 }
+
 .progressbar li.active + li:after {
-  background-color: green;
+    background-color: green;
 }
 
 .progressbar a {
@@ -73,9 +180,11 @@ footer {
 .progressbar a:visited {
     text-decoration: none;
 }
+
 .progressbar a.active {
     color: green;
 }
+
 .draw-container {
     width: 70%;
     margin: auto;
@@ -86,10 +195,12 @@ footer {
     color: blue;
     font-weight: bold;
 }
+
 .error {
     color: red;
     font-weight: bold;
 }
+
 .warning {
     color: orange;
     font-weight: bold;
@@ -142,11 +253,37 @@ footer {
     background-color: #F8F8F8;
 }
 
-.remove-padding-right {
-    padding-right: 0px !important;
-}
-
 .ladder-round-results {
     height: 40px;
     padding-top: 10px;
+}
+
+.table-link a {
+    text-decoration: none;
+    color: #CD6620;
+}
+
+.table-link a:hover {
+    color: black;
+}
+
+.match {
+    width: 100%;
+    height: 30px;
+    display: inline-flex;
+    border-radius: 5px;
+    border-width: 2px;
+    border-color: #CD6620;
+    border-style: dotted;
+    margin: 5px;
+}
+
+.match-player {
+    width: 43%;
+    padding-left: 5px;
+    font-style: italic;
+}
+
+.match-vs {
+    width: 14%;
 }

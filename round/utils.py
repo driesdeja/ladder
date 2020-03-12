@@ -67,11 +67,11 @@ def validate_match_results(match):
 It will all'''
 
 
-def ensure_player_not_already_in_round(round_id, player):
-    same_players_in_round = PlayersInLadderRound.objects.filter(player=player)
+def ensure_player_not_already_in_round(ladder_round, player):
+    same_players_in_round = PlayersInLadderRound.objects.filter(player=player, ladder_round=ladder_round)
     if len(same_players_in_round) > 0:
-        for each_player in same_players_in_round:
-            same_players_in_round.delete()
+        for same_player_in_round in same_players_in_round:
+            same_player_in_round.delete()
 
 
 def add_player_to_round(round_id, player):
@@ -81,7 +81,7 @@ def add_player_to_round(round_id, player):
         player_to_add.player = player
     else:
         player_to_add.player = Player.objects.get(id=player)
-    ensure_player_not_already_in_round(round_id, player_to_add.player)
+    ensure_player_not_already_in_round(ladder_round, player_to_add.player)
     player_to_add.ladder_round = ladder_round
     player_to_add.save()
 

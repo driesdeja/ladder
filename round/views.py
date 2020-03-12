@@ -108,14 +108,17 @@ def ladder_detail(request, ladder_id):
 
 
 def round_detail(request, round_id):
-
     ladder_round = LadderRound.objects.get(id=round_id)
     players = get_players_in_round(ladder_round)
+    if ladder_round.status == ladder_round.CLOSED:
+        matches = Match.objects.filter(ladder_round=ladder_round)
+    else:
+        matches = None
     if request.POST.get('copy_players'):
         previous_round_id = request.POST.get('previous_round')
         previous_round = LadderRound.objects.get(id=previous_round_id)
-        players = get_players_in_round(previous_round)
-        for player in players:
+        new_players = get_players_in_round(previous_round)
+        for player in new_players:
             add_player_to_round(round_id, player)
         ladder_round.status = ladder_round.OPEN
         ladder_round.save()
@@ -128,13 +131,21 @@ def round_detail(request, round_id):
     if request.POST.get('enter_round'):
         player_id = request.POST.get('player_id')
         player = Player.objects.get(id=player_id)
-        add_player_to_round(round_id, player_id )
+        add_player_to_round(round_id, player_id)
         return redirect(round_detail, round_id)
-    previous_rounds = LadderRound.objects.filter(ladder=ladder_round.ladder, status__exact=LadderRound.COMPLETED)
+    previous_rounds = LadderRound.objects.filter(ladder=ladder_round.ladder,
+                                                 status__exact=LadderRound.COMPLETED).order_by('-start_date')
+    ladder_rounds = LadderRound.objects.filter(ladder=ladder_round.ladder,
+                                               status__in=[LadderRound.OPEN, LadderRound.CLOSED,
+                                                           LadderRound.COMPLETED]).order_by('start_date')
+    ladder = ladder_round.ladder
     context = {
+        'ladder': ladder,
         'ladder_round': ladder_round,
+        'ladder_rounds': ladder_rounds,
         'players': players,
-        'previous_rounds': previous_rounds
+        'previous_rounds': previous_rounds,
+        'matches': matches
     }
     return render(request, 'round/round-detail.html', context)
 
@@ -174,9 +185,10 @@ def add_players_to_round(request, round_id):
     if request.POST.get('remove_from_round[]'):
         players_to_remove = request.POST.getlist('remove_from_round[]')
         for player in players_to_remove:
-            players_to_remove = PlayersInLadderRound.objects.filter(player=player)
-            for player_to_remove in players_to_remove:
+            player_to_remove = PlayersInLadderRound.objects.filter(player=player, ladder_round=ladder_round)
+            if player_to_remove:
                 player_to_remove.delete()
+        return redirect(add_players_to_round, round_id)
 
     players_in_round = get_players_in_round(ladder_round)
     players_not_in_round = get_players_not_in_round(players_in_round)
@@ -311,7 +323,8 @@ def view_round_results(request, round_id):
     ladder = ladder_round.ladder
     matches = Match.objects.filter(ladder_round=ladder_round)
     ladder_rounds = list(
-        LadderRound.objects.filter(ladder__exact=ladder).filter(status__in=[LadderRound.COMPLETED, LadderRound.CLOSED]))
+        LadderRound.objects.filter(ladder__exact=ladder).filter(
+            status__in=[LadderRound.COMPLETED, LadderRound.CLOSED, LadderRound.OPEN]).order_by('start_date'))
     context = {
         'ladder_round': ladder_round,
         'ladder_rounds': ladder_rounds,
@@ -379,7 +392,8 @@ def update_players_ranking(request, round_id):
 
 def ladder_overview(request):
     open_ladder = Ladder.objects.filter(status=Ladder.OPEN).first()
-    ladder_rounds = list(LadderRound.objects.filter(ladder__exact=open_ladder))
+    ladder_rounds = list(LadderRound.objects.filter(ladder__exact=open_ladder).filter(
+        status__in=(LadderRound.OPEN, LadderRound.COMPLETED, LadderRound.CLOSED)))
     players = Player.objects.all().order_by('ranking')
     full_ladder_details = get_full_ladder_details(open_ladder)
     context = {

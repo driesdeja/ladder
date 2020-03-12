@@ -189,7 +189,7 @@ class RoundUtilsTestCase(TestCase):
 
     def test_ensure_player_not_already_in_round(self):
         add_player_to_round(self.ladder_round.id, Player.objects.get(first_name='Tom'))
-        ensure_player_not_already_in_round(self.ladder_round.id, Player.objects.get(first_name='Tom'))
+        ensure_player_not_already_in_round(self.ladder_round, Player.objects.get(first_name='Tom'))
         with self.assertRaises(PlayersInLadderRound.DoesNotExist):
             PlayersInLadderRound.objects.get(player=Player.objects.get(first_name='Tom'))
 
