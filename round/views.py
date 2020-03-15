@@ -133,6 +133,50 @@ def round_detail(request, round_id):
         player = Player.objects.get(id=player_id)
         add_player_to_round(round_id, player_id)
         return redirect(round_detail, round_id)
+    if request.POST.get('capture-match-results'):
+        match = Match.objects.get(id=request.POST.get('match-id'))
+        if request.POST.get('player1-defaulted'):
+            match.result = match.PLAYER_1_DEFAULTED
+        if request.POST.get('player2-defaulted'):
+            match.result = match.PLAYER_2_DEFAULTED
+        if request.POST.get('games-for-player1'):
+            match.games_for_player1 = int(request.POST.get('games-for-player1'))
+        if request.POST.get('games-for-player2'):
+            match.games_for_player2 = int(request.POST.get('games-for-player2'))
+        if request.POST.get('date-played'):
+            date_str = request.POST.get('date-played')
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+            match.date_played = date_obj
+            match.date_played = datetime.strptime(
+                request.POST.get('date-played'), '%Y-%m-%d')
+        else:
+            match.date_played = date.today()
+        errors = validate_match_results(match)
+        if len(errors) < 1:
+            if match.games_for_player1 == 3:
+                match.result = match.PLAYER_1_WON
+            elif match.games_for_player2 == 3:
+                match.result = match.PLAYER_2_WON
+            if match.result == match.PLAYER_1_DEFAULTED:
+                match.games_for_player2 = 3
+            if match.result == match.PLAYER_2_DEFAULTED:
+                match.games_for_player1 = 3
+
+            match.save()
+            messages.info(request, 'Match result successfully captured!')
+            return redirect(round_detail, round_id)
+        else:
+            for error in errors:
+                messages.warning(request, error)
+    if request.POST.get('reset-match-results'):
+        match = Match.objects.get(id=request.POST.get('match-id'))
+        match.games_for_player2 = 0
+        match.games_for_player1 = 0
+        match.date_played = None
+        match.result = Match.NOT_PLAYED
+        match.save()
+        messages.info(request, 'Match result has been reset, please re-capture!')
+        return redirect(round_detail, round_id)
     previous_rounds = LadderRound.objects.filter(ladder=ladder_round.ladder,
                                                  status__exact=LadderRound.COMPLETED).order_by('-start_date')
     ladder_rounds = LadderRound.objects.filter(ladder=ladder_round.ladder,

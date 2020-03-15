@@ -87,10 +87,11 @@ def add_player_to_round(round_id, player):
 
 
 def remove_player_from_round(round_id, player):
+    ladder_round = LadderRound.objects.get(id=round_id)
     if isinstance(player, Player):
-        player_to_remove = PlayersInLadderRound.objects.get(player=player)
+        player_to_remove = PlayersInLadderRound.objects.get(player=player, ladder_round=ladder_round)
     else:
-        player_to_remove = PlayersInLadderRound.objects.get(player=Player.objects.get(id=player))
+        player_to_remove = PlayersInLadderRound.objects.get(player=Player.objects.get(id=player), ladder_round=ladder_round)
     player_to_remove.delete()
 
 

@@ -34,13 +34,81 @@
                 {% if matches %}
                     <div class="row">
                         {% for match in matches %}
-                            <div class="match   {% if user.profile.player == match.player1 or user.profile.player == match.player1 %}match-in{% endif %}">
-                                    <div class="match-player">{{ match.player1.first_name }} {{ match.player1.last_name }} ({{ match.player1.ranking }})
+                            {% if user.profile.player == match.player1 or user.profile.player == match.player2 %}
+
+                                <div class="match match-in">
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        {% if match.result == match.NOT_PLAYED %}
+                                            <div class="row">
+                                                <div class="match-player">{{ match.player1.first_name }} {{ match.player1.last_name }}
+                                                </div>
+                                                <div class="match-in-input">
+                                                    <select name="games-for-player1">
+                                                        <option value="0">0</option>
+                                                        <option value="1">1</option>
+                                                        <option value="2">2</option>
+                                                        <option value="3">3</option>
+                                                    </select>
+                                                    <label for="player1-defaulted">Defaulted</label>
+                                                    <input type="checkbox" name="player1-defaulted">
+                                                </div>
+                                                <div class="match-vs">VS</div>
+                                                <div class="match-player">{{ match.player2.first_name }} {{ match.player2.last_name }}
+                                                </div>
+                                                <div>
+                                                    <select name="games-for-player2">
+                                                        <option value="0">0</option>
+                                                        <option value="1">1</option>
+                                                        <option value="2">2</option>
+                                                        <option value="3">3</option>
+                                                    </select>
+                                                    <label for="player2-defaulted">Defaulted</label>
+                                                    <input type="checkbox" name="player2-defaulted">
+                                                </div>
+                                            </div>
+                                            <div class="row row-align-center">
+                                                <div class="col">
+                                                    <input type="hidden" name="match-id" value="{{ match.id }}"/>
+                                                    <label for="date-played">Date Played</label>
+                                                    <input type="date" name="date-played"
+                                                           value={% now "SHORT_DATE_FORMAT" %}>
+                                                    <input type="submit" class="action-button"
+                                                           name="capture-match-results" value="Capture Result"/>
+
+                                                </div>
+                                            </div>
+
+                                        {% else %}
+                                            <div class="row match-completed">
+                                                <div class="match-player">{{ match.player1.first_name }} {{ match.player1.last_name }}
+                                                </div>
+                                                <div class="match-vs row-align-center">{{ match.games_for_player1 }} - {{ match.games_for_player2 }} ({{ match.date_played|date:"D, j M" }})</div>
+                                                <div class="match-player">{{ match.player2.first_name }} {{ match.player2.last_name }}
+                                                </div>
+
+
+                                                <div class="match-reset">
+                                                    <input type="hidden" name="match-id" value="{{ match.id }}"/>
+                                                    <input type="submit" class="action-button"
+                                                           name="reset-match-results" value="Reset/Edit Result"/>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </form>
+                                </div>
+
+                            {% else %}
+                                <div class="match">
+                                    <div class="match-player">{{ match.player1.first_name }} {{ match.player1.last_name }}
                                     </div>
                                     <div class="match-vs">VS</div>
-                                    <div class="match-player">{{ match.player2.first_name }} {{ match.player2.last_name }} ({{ match.player2.ranking }})
+                                    <div class="match-player">{{ match.player2.first_name }} {{ match.player2.last_name }}
                                     </div>
-                            </div>
+                                </div>
+                            {% endif %}
+
+
 
                         {% endfor matches %}
                     </div>

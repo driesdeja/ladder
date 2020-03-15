@@ -118,16 +118,7 @@ class Match(models.Model):
         ordering = ['player1__ranking']
 
     def __str__(self):
-        return '\nDraw' \
-               '\n\tRound: ' + str(self.ladder_round) + \
-                '\n\tDate Played: ' + str(self.date_played) + \
-               '\n\tPlayer1: ' + self.player1.first_name + \
-               '\n\tPlayer2: ' + self.player2.first_name + \
-               '\n\tGames for Player1: ' + str(self.games_for_player1) + \
-               '\n\tGames for Player2: ' + str(self.games_for_player2) + \
-               '\n\tMatch Result: ' + str(self.result) + \
-               '\n\tDate Created: ' + str(self.date_created) + \
-               '\n\tLast Updated: ' + str(self.last_updated)
+        return f'id: {self.id} ladder_round: {self.ladder_round} date_played: {self.date_played} '
 
 
 class PlayerRanking(models.Model):
