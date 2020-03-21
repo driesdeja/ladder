@@ -96,7 +96,9 @@ footer {
 }
 
 .nav-left a {
-    padding: 5px 20px 5px 10px;
+    line-height: 30px;
+    padding-left: 5px;
+    height: 30px;
     text-decoration: none;
     font-size: 15px;
     color: #ffffff;
@@ -105,6 +107,26 @@ footer {
 
 .nav-left a:hover {
     color: #000000;
+}
+
+.nav-left p {
+    margin: 0;
+    line-height: 30px;
+    height: 30px;
+    padding-left: 10px;
+
+}
+
+.nav-left .row {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.round-in-progress {
+    color: #7E3300;
+    background-color: #FFAE78;
+    border-radius: 5px;
+
 }
 
 .content-panel {
@@ -166,10 +188,11 @@ footer {
     width: 24%;
     position: relative;
     text-align: center;
-    cursor: pointer;
+
 }
 
 .progressbar li:before {
+    color: lightgray;
     content: counter(step);
     counter-increment: step;
     width: 30px;
@@ -199,10 +222,11 @@ footer {
 }
 
 .progressbar li.active {
-    color: green;
+
 }
 
 .progressbar li.active:before {
+     color: green;
     border-color: green;
 }
 
@@ -227,6 +251,13 @@ footer {
     color: green;
 }
 
+.progressbar .not-possible {
+    color: lightgray;
+}
+
+.progressbar .possible a {
+    color: #000000;
+}
 .draw-container {
     width: 70%;
     margin: auto;
@@ -369,6 +400,7 @@ footer {
     border-radius: 5px;
     border-color: #7E3300;
     background-color: #7E3300;
+    line-height: 30px;
 }
 
 .action-button:hover {
@@ -392,4 +424,21 @@ footer {
 }
 .match-completed .match-vs {
     width: 20%;
+}
+
+.info-header {
+    display: inline-flex;
+    width: 100%;
+    background-color: #FFAE78;
+    border-radius: 5px;
+    padding-left: 5px;
+    height: 50px;
+    line-height: 50px;
+    justify-content: space-around;
+    font-weight: bold;
+}
+
+.tr-highlight {
+    border-radius: 5px;
+    background-color: #FFAE78;
 }

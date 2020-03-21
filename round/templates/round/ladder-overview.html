@@ -8,22 +8,7 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-3 pl-0 pr-0 pt-2">
-                <div class="nav-left">
-
-                    {% for ladder_round in ladder_rounds %}
-
-                        {% if ladder_round.status == ladder_round.COMPLETED %}
-                            <a href="{% url "view-results" ladder_round.id %}"
-                               class="">Week {{ forloop.counter }}
-                                - {{ ladder_round.start_date }} {{ ladder_round.get_status_display }}</a>
-                        {% else %}
-                            <a href="{% url "round-detail" ladder_round.id %}"
-                               class="">Week {{ forloop.counter }}
-                                - {{ ladder_round.start_date }} {{ ladder_round.get_status_display }}</a>
-                        {% endif %}
-
-                    {% endfor %}
-                </div>
+                {% include 'round/round_detail_nav.html' with ladder_round=ladder_round ladder_rounds=ladder_rounds  %}
             </div>
             <div class="col-md-9 pt-2 pr-0">
                 <div class="content-panel">

@@ -59,3 +59,19 @@ def profile(request):
         'p_form': p_form
     }
     return render(request, 'users/profile.html', context)
+
+
+@login_required
+def non_player_profile(request):
+    if request.POST:
+        u_form = UserUpdateForm(request.POST, instance=request.user)
+        if u_form.is_valid():
+            u_form.save()
+            messages.success(request, f'Your profile has been updated!')
+            redirect('non-player-profile')
+    else:
+        u_form = UserUpdateForm(instance=request.user)
+    context = {
+        'u_form': u_form
+    }
+    return render(request, 'users/non_player_profile.html', context)

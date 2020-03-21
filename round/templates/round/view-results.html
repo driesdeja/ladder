@@ -15,19 +15,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-3 pl-0 pr-0 pt-2">
-                <div class="nav-left">
-                    {% for all_rounds in ladder_rounds %}
-                        {% if all_rounds.status == ladder_round.COMPLETED %}
-                            <a href="{% url "view-results" all_rounds.id %}"
-                               class="{% if ladder_round.id == all_rounds.id %}active{% endif %}">Week {{ forloop.counter }}
-                                - {{ all_rounds.start_date }} {{ all_rounds.get_status_display }}</a>
-                        {% else %}
-                            <a href="{% url "round-detail" all_rounds.id %}"
-                               class="">Week {{ forloop.counter }}
-                                - {{ all_rounds.start_date }} {{ all_rounds.get_status_display }}</a>
-                        {% endif %}
-                    {% endfor %}
-                </div>
+                {% include 'round/round_detail_nav.html' with ladder_round=ladder_round ladder_rounds=ladder_rounds  %}
             </div>
             <div class="col-md-9 pt-2 pr-0">
                 <table id="match-result-table" class="table table-link">

@@ -13,6 +13,7 @@
 
     <!-- main.css loaded from static -->
     <link rel="stylesheet" type="text/css" href="{% static 'players/main.css' %}">
+    <link rel="stylesheet" href="{% static 'players/scheduling.css' %}">
 
 </head>
 <body>
@@ -37,12 +38,22 @@
                 </ul>
                 <ul class="navbar-nav ml-auto">
                     {% if user.is_authenticated %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">{% if user.first_name %}
-                            {{ user.first_name }}
+                        {% if user.profile.player %}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">{% if user.first_name %}
+                                {{ user.first_name }}
+                            {% else %}
+                                Profile
+                            {% endif %}
+                            </a></li>
                         {% else %}
-                            Profile
+                            <li class="nav-item"><a class="nav-link" href="{% url 'non-player-profile' %}">{% if user.first_name %}
+                                {{ user.first_name }}
+                            {% else %}
+                                Profile
+                            {% endif %}
+                            </a></li>
                         {% endif %}
-                        </a></li>
+
                         <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}"><span
                                 class="glyphicon glyphicon-log-out"></span> Logout</a></li>
 
@@ -78,5 +89,6 @@
         integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
         crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+<script src="{% static 'players/scheduling.js' %}"></script>
 </body>
 </html>

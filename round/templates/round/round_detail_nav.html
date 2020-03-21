@@ -1,0 +1,18 @@
+<div class="nav-left">
+    {% for all_rounds in ladder_rounds %}
+        <div class="row {% if all_rounds.status == all_rounds.CLOSED %}round-in-progress{% endif %}">
+            {% if all_rounds.status == ladder_round.COMPLETED %}
+                <a href="{% url "view-results" all_rounds.id %}"
+                   class="{% if ladder_round.id == all_rounds.id %}active{% endif %}">Week {{ forloop.counter }}
+                    - {{ all_rounds.start_date }}</a>
+                <p>{{ all_rounds.get_status_display }}</p>
+            {% else %}
+                <a href="{% url "round-detail" all_rounds.id %}"
+                   class="{% if ladder_round.id == all_rounds.id %}active{% endif %}">Week {{ forloop.counter }}
+                    - {{ all_rounds.start_date }}</a>
+                <p>{% if all_rounds.status == all_rounds.CLOSED %}In Progress{% else %}
+                    {{ all_rounds.get_status_display }}{% endif %}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>

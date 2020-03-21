@@ -1,0 +1,26 @@
+{% extends "players/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+    <div class="container-fluid">
+        <div class="row profile-top-section">
+            <div class="col-sm-6 h-100">
+                <div class="profile-personal-details">
+                    <h3>Person Details</h3>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <fieldset class="form-group">
+                            <legend class="border-bottom mb-4">Personal Details</legend>
+                            {{ u_form|crispy }}
+                        </fieldset>
+                        <div class="form-group">
+                            <button class="btn btn-outline-info" type="submit">Update</button>
+                        </div>
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+        <div class="row"></div>
+    </div>
+{% endblock content %}

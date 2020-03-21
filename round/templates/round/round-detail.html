@@ -10,32 +10,19 @@
     </div>
     {% if perms.round.can_administrate_ladder %}
         <div class="container">
-            {% include 'round/ladder-admin-nav.html' %}
+            {% include 'round/ladder-admin-nav.html'  with  status=ladder_round.status %}
         </div>
     {% endif %}
     <div class="container">
         <div class="row">
             <div class="col-md-3 pl-0 pr-0 pt-2">
-                <div class="nav-left">
-                    {% for all_rounds in ladder_rounds %}
-                        {% if all_rounds.status == ladder_round.COMPLETED %}
-                            <a href="{% url "view-results" all_rounds.id %}"
-                               class="{% if ladder_round.id == all_rounds.id %}active{% endif %}">Week {{ forloop.counter }}
-                                - {{ all_rounds.start_date }} {{ all_rounds.get_status_display }}</a>
-                        {% else %}
-                            <a href="{% url "round-detail" all_rounds.id %}"
-                               class="{% if ladder_round.id == all_rounds.id %}active{% endif %}">Week {{ forloop.counter }}
-                                - {{ all_rounds.start_date }} {{ all_rounds.get_status_display }}</a>
-                        {% endif %}
-                    {% endfor %}
-                </div>
+                {% include 'round/round_detail_nav.html' with ladder_round=ladder_round ladder_rounds=ladder_rounds  %}
             </div>
             <div class="col-md-9 pt-2 pr-0">
                 {% if matches %}
                     <div class="row">
                         {% for match in matches %}
                             {% if user.profile.player == match.player1 or user.profile.player == match.player2 %}
-
                                 <div class="match match-in">
                                     <form method="post">
                                         {% csrf_token %}
@@ -83,7 +70,10 @@
                                             <div class="row match-completed">
                                                 <div class="match-player">{{ match.player1.first_name }} {{ match.player1.last_name }}
                                                 </div>
-                                                <div class="match-vs row-align-center">{{ match.games_for_player1 }} - {{ match.games_for_player2 }} ({{ match.date_played|date:"D, j M" }})</div>
+                                                <div class="match-vs row-align-center">{{ match.games_for_player1 }}
+                                                    - {{ match.games_for_player2 }}
+                                                    ({{ match.date_played|date:"D, j M" }})
+                                                </div>
                                                 <div class="match-player">{{ match.player2.first_name }} {{ match.player2.last_name }}
                                                 </div>
 
@@ -114,53 +104,64 @@
                     </div>
                 {% else %}
                     {% if players %}
-                        Players scheduled to play in the round:
-                        {% if user.is_authenticated %}
-                            {% if user.profile.player in players %}
-                                You are scheduled to play in this round.
-                                <form method="POST">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="player_id" value="{{ user.profile.player.id }}">
-                                    <input type="submit" class="btn btn-warning" name="leave_round" value="Leave Round">
-                                </form>
-                            {% else %}
-                                You have not entered this round.
-                                <form method="POST">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="player_id" value="{{ user.profile.player.id }}">
-                                    <input type="submit" class="btn btn-warning" name="enter_round" value="Enter Round">
-                                </form>
-                            {% endif %}
-                        {% endif %}
-                        <table class="table table-link">
-                            <tr>
-                                <th>Ranking (In Round)</th>
-                                <th>Name</th>
-                                <th>Contact Number</th>
-                            </tr>
-                            {% for player in players %}
-                                {% if user.profile.player == player %}
-                                    <tr class="bg-info">
+                        <div class="row pl-2 pr-3">
+                            {% if user.is_authenticated %}
+                                <div class="info-header">
+                                    {% if user.profile.player %}
+                                        {% if user.profile.player in players %}
+                                            <p>You are scheduled to play in this round.</p>
+                                            <form method="POST">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="player_id"
+                                                       value="{{ user.profile.player.id }}">
+                                                <input type="submit" class="action-button" name="leave_round"
+                                                       value="Leave Round">
+                                            </form>
                                         {% else %}
-                                    <tr>
-                                {% endif %}
-                            <td>
-                                {{ forloop.counter }}
-                            </td>
-                            <td>
-                                <a href="{% url 'player-profile' player.id %}">{{ player.first_name }} {{ player.last_name }}</a>
-                            </td>
-                            <td>
-                                {% if user.is_authenticated %}
-                                    {{ player.contact_number }}
-                                {% else %}
-                                    ###########
-                                {% endif %}
-                            </td>
-                            </tr>
+                                            <p>You have not entered this round.</p>
+                                            <form method="POST">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="player_id"
+                                                       value="{{ user.profile.player.id }}">
+                                                <input type="submit" class="action-button" name="enter_round"
+                                                       value="Enter Round">
+                                            </form>
+                                        {% endif %}
+                                    {% else %}
+                                        <p>Players currently scheduled to play in this round</p>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            <table class="table table-link">
+                                <tr>
+                                    <th>Ranking (In Round)</th>
+                                    <th>Name</th>
+                                    <th>Contact Number</th>
+                                </tr>
+                                {% for player in players %}
+                                    {% if user.profile.player == player %}
+                                        <tr class="tr-highlight">
+                                            {% else %}
+                                        <tr>
+                                    {% endif %}
+                                <td>
+                                    {{ forloop.counter }}
+                                </td>
+                                <td>
+                                    <a href="{% url 'player-profile' player.id %}">{{ player.first_name }} {{ player.last_name }}</a>
+                                </td>
+                                <td>
+                                    {% if user.is_authenticated %}
+                                        {{ player.contact_number }}
+                                    {% else %}
+                                        ###########
+                                    {% endif %}
+                                </td>
+                                </tr>
 
-                            {% endfor %}
-                        </table>
+                                {% endfor %}
+                            </table>
+                        </div>
                     {% else %}
                         {% if perms.round.can_administrate_ladder %}
                             Copy players from previous round?

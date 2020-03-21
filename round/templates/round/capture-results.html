@@ -1,13 +1,19 @@
 {% extends 'players/base.html' %}
 
 {% block content %}
+    <div class="panel panel-default">
+        <div class="row-cols-2">
+            <div class="panel-heading">Capture Results for Ladder round</div>
+            <div class="panel-body">{{ ladder_round.start_date }} - {{ ladder_round.end_date }}</div>
+        </div>
+
+    </div>
     <div class="container">
-        {% include 'round/ladder-admin-nav.html' with page_name='capture' %}
+        {% include 'round/ladder-admin-nav.html' with page_name='capture' status=ladder_round.status %}
     </div>
 
     {% if ladder_round.status == 2 %}
         <form method="post" action="{% url 'capture-results' ladder_round.id %}">
-            <p>Capture Results for Ladder round : {{ ladder_round.start_date }}</p>
             <input class="btn" type="submit" name="re-open-round" value="Re-Open-Round"/>
             <div class="draw-container">
 

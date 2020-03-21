@@ -84,6 +84,8 @@
                                 <a href="{% url 'view-results' round.id %}">View Results</a>
                             {% elif round.status == round.CANCELLED %}
                                 Round Cancelled - Nothing to see here
+                            {% elif round.status == round.CLOSED%}
+                                <a href="{% url 'capture-results' round.id %}">Capture Results</a>
                             {% else %}
                                 <a href="{% url 'round-detail' round.id %}">Manage Round</a>
                             {% endif %}

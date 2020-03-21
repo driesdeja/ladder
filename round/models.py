@@ -132,3 +132,21 @@ class PlayerRanking(models.Model):
     def __str__(self):
         return f'{self.player.first_name} ranking {self.ranking} effective from {self.eff_from} to ' \
                f'{self.eff_to}. It was changed on {self.last_updated} because {self.reason_for_change}'
+
+
+class MatchSchedule(models.Model):
+    OPEN = 0
+    CLOSED = 1
+
+    Status = [
+        (OPEN, 'Open'),
+        (CLOSED, 'Closed')
+    ]
+
+    time_slot = models.TimeField()
+    match = models.ForeignKey(Match, on_delete=models.CASCADE)
+    ladder_round = models.ForeignKey(LadderRound, on_delete=models.CASCADE)
+    status = models.IntegerField(choices=Status, default=OPEN)
+
+    def __str__(self):
+        return f'{self.time_slot} : {self.match.player1.first_name} vs {self.match.player2.first_name} - {self.ladder_roundn.start_date}'

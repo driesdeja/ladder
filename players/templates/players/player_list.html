@@ -4,7 +4,7 @@
         {% if perms.players.add_player %}
             <a href="{% url 'create-player' %}">Add Player</a>
             <a href="{% url 'reset-rankings' %}">Reset Ranking</a>
-            {% endif %}
+        {% endif %}
     {% endif %}
     <table class="table text-left table-link">
         <thead>
@@ -20,7 +20,11 @@
         </thead>
         <tbody>
         {% for player in players %}
-            <tr id="{{ player.id }}">
+            {% if user.profile.player == player %}
+                <tr id="{{ player.id }}" class="tr-highlight">
+                    {% else %}
+                <tr id="{{ player.id }}">
+            {% endif %}
                 <td>{{ player.ranking }}</td>
                 <td><a href="{% url 'player-profile' player.id %}">{{ player.first_name }}</a></td>
                 <td><a href="{% url 'player-profile' player.id %}">{{ player.last_name }}</a></td>
@@ -32,9 +36,9 @@
                     {% endif %}
                 </td>
                 {% if perms.players.add_player %}
-                <td>
+                    <td>
                         <a href="{% url 'edit-player' player.id %}">Edit</a>
-                </td>
+                    </td>
                 {% endif %}
             </tr>
         {% endfor %}

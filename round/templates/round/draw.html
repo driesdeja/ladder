@@ -10,9 +10,12 @@
             <div class="row">
                 <div class="col text-center">
                     <p>Draw for ladder : {{ ladder_round.start_date }}</p>
-                    {% if ladder_round.status < 2 and players|length|divisibleby:2 %}
+                    {% if ladder_round.status < ladder_round.CLOSED and players|length|divisibleby:2 %}
                         <p><input type="submit" class="btn btn-outline-info" name="close" value="Close Draw"/></p>
                     {% endif %}
+
+                        <p><a href="{% url 'schedule-matches' ladder_round.id %}">Schedule Matches</a> </p>
+
                 </div>
                 <input type="hidden" name="round_id" value="{{ ladder_round.id }}"/>
             </div>

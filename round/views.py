@@ -10,6 +10,7 @@ from .models import Ladder
 from .models import Match
 from .models import MatchResult
 from .models import PlayerRanking
+from .models import MatchSchedule
 from datetime import date, datetime
 from .forms import LadderForm, LadderRoundForm, MatchForm, LadderStatusForm
 from players.models import Player
@@ -474,3 +475,16 @@ def player_profile(request, player_id):
     }
 
     return render(request, 'round/player_profile.html', context)
+
+
+def schedule_matches(request, round_id):
+    ladder_round = LadderRound.objects.get(id=round_id)
+    matches = Match.objects.filter(ladder_round=ladder_round)
+    schedule = {}
+    context = {
+        'ladder_round': ladder_round,
+        'matches': matches,
+        'schedule': schedule
+    }
+    return render(request, 'round/schedule_matches.html', context)
+

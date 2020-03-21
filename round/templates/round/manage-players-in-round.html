@@ -3,7 +3,7 @@
 
 {% block content %}
     <div class="container">
-        {% include 'round/ladder-admin-nav.html' with page_name='add-players' %}
+        {% include 'round/ladder-admin-nav.html' with page_name='add-players' status=ladder_round.status %}
     </div>
     <form method="post" action="{% url 'add-players-to-round' ladder_round.id %}">
         {% csrf_token %}
