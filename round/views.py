@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+import json
 from django import forms
 from django.forms.models import model_to_dict
 from django.http import HttpResponse
@@ -11,12 +12,14 @@ from .models import Match
 from .models import MatchResult
 from .models import PlayerRanking
 from .models import MatchSchedule
+from .models import RoundMatchSchedule
 from datetime import date, datetime
 from .forms import LadderForm, LadderRoundForm, MatchForm, LadderStatusForm
 from players.models import Player
 from .utils import validate_match_results, get_players_in_round, get_players_not_in_round, setup_matches_for_draw, \
-    add_player_to_round, compare_and_update_player_with_playerranking, get_full_ladder_details, remove_player_from_round
-from round.utils import calculate_change_in_ranking, update_ladder_ranking, matches_player_played_in
+    add_player_to_round, compare_and_update_player_with_playerranking, get_full_ladder_details, \
+    remove_player_from_round, is_int, add_intervals_to_start_time, get_number_of_timeslots
+from round.utils import calculate_change_in_ranking, update_ladder_ranking, matches_player_played_in, date_range
 from players.views import list_players
 
 
@@ -481,10 +484,75 @@ def schedule_matches(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
     matches = Match.objects.filter(ladder_round=ladder_round)
     schedule = {}
+    if request.POST:
+        scheduled_matches = json.loads(request.POST.get('scheduled-matches'))
+        match_day = request.POST.get('match-day')
+        # todo Validate that match_day is between the start and end dates of the ladder_round
+        if schedule_matches:
+            for scheduled_match in scheduled_matches:
+                pass
+                # match_schedule = MatchSchedule.objects.create()
+
+        print(scheduled_matches)
+
+    else:
+        match_day = datetime.today()
+
     context = {
         'ladder_round': ladder_round,
         'matches': matches,
-        'schedule': schedule
+        'schedule': schedule,
+        'match_day': match_day
     }
     return render(request, 'round/schedule_matches.html', context)
 
+
+def setup_scheduling_for_round(request, round_id):
+    ladder_round = LadderRound.objects.get(id=round_id)
+    start_date = ladder_round.start_date
+    end_date = ladder_round.end_date
+    delta = end_date - start_date
+    days = date_range(start_date, end_date)
+    if request.POST:
+        if request.POST.get('generate-match-schedule'):
+            match_days = ','.join(request.POST.getlist('match-day[]'))
+            number_of_courts = request.POST.get('number-of-courts')
+            start_time = datetime.strptime(request.POST.get('start-time'), '%H:%M').time()
+            time_interval = request.POST.get('time-interval')
+            number_of_games = request.POST.get('number-of-games')
+
+            if is_int(number_of_games):
+                number_of_games = int(number_of_games)
+            else:
+                number_of_games = 0
+
+            if number_of_games > 0:
+                number_of_time_slots = int(float(number_of_games) / float(number_of_courts) + 1)
+
+                end_time = add_intervals_to_start_time(start_time, time_interval, int(number_of_time_slots))
+
+                print(f'end time: {end_time.strftime("%H:%M")}')
+            else:
+                end_time = datetime.strptime(request.POST.get('end-time'), '%H:%M').time()
+            number_of_timeslots = get_number_of_timeslots(start_time, end_time, time_interval)
+            round_match_schedule = RoundMatchSchedule.objects.create(match_days=match_days,
+                                                                     number_of_courts=number_of_courts,
+                                                                     start_time=start_time,
+                                                                     end_time=end_time,
+                                                                     number_of_timeslots=number_of_timeslots,
+                                                                     time_interval=int(time_interval))
+            round_match_schedule.save()
+            ladder_round.match_schedule = round_match_schedule
+            ladder_round.save()
+            print(f'schedule: {round_match_schedule}')
+        elif request.POST.get('reset-schedule'):
+            ladder_round.match_schedule = None
+            ladder_round.save()
+        redirect(setup_scheduling_for_round, ladder_round.id)
+    round_match_schedule = ladder_round.match_schedule
+    context = {
+        'ladder_round': ladder_round,
+        'days': days,
+        'match_schedule': round_match_schedule
+    }
+    return render(request, 'round/setup-scheduling.html', context)

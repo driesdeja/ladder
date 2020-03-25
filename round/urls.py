@@ -16,5 +16,6 @@ urlpatterns = [
     path('ladder/round/<int:round_id>/match/<int:match_id>', views.edit_match, name='edit-match'),
     path('ladder/round/<int:round_id>/ranking_updates', views.update_players_ranking, name='update-ranking'),
     path('ladder/round/<int:round_id>/schedule-matches', views.schedule_matches, name='schedule-matches'),
+    path('ladder/round/<int:round_id>/setup-scheduling', views.setup_scheduling_for_round, name='setup-scheduling'),
     path('player/<int:player_id>', views.player_profile, name='player-profile')
 ]

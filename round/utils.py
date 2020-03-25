@@ -2,8 +2,9 @@ from .models import PlayersInLadderRound, PlayerRanking
 from .models import Ladder
 from .models import LadderRound
 from .models import Match
+from .models import MatchSchedule
 from players.models import Player
-from datetime import datetime
+from datetime import datetime, timedelta, time
 
 
 def get_players_in_round(ladder_round):
@@ -91,7 +92,8 @@ def remove_player_from_round(round_id, player):
     if isinstance(player, Player):
         player_to_remove = PlayersInLadderRound.objects.get(player=player, ladder_round=ladder_round)
     else:
-        player_to_remove = PlayersInLadderRound.objects.get(player=Player.objects.get(id=player), ladder_round=ladder_round)
+        player_to_remove = PlayersInLadderRound.objects.get(player=Player.objects.get(id=player),
+                                                            ladder_round=ladder_round)
     player_to_remove.delete()
 
 
@@ -375,3 +377,65 @@ def fix_date_played(matches):
             match.date_played = datetime.today()
             match.save()
     return True
+
+
+def date_range(start_date, end_date):
+    for n in range(int((end_date - start_date).days + 1)):
+        yield start_date + timedelta(n)
+
+
+def validate_round_match_schedule(round_match_schedule):
+    return True
+
+
+def is_int(value):
+    try:
+        int(value)
+        return True
+    except ValueError:
+        return False
+
+
+def add_intervals_to_start_time(start_time, interval, number_of_intervals):
+    start_time_time_obj = datetime.strptime(start_time, '%H:%M')
+    total_minutes = int(interval) * int(number_of_intervals)
+    end_time = start_time_time_obj + timedelta(minutes=total_minutes)
+    return end_time.time()
+
+
+def create_match_schedule_with_round_match_schedule(ladder_round, round_match_schedule):
+    match_days = round_match_schedule.match_days.split(',')
+    for each_day in match_days:
+        year = ladder_round.start_date.year
+        day_of_year = datetime(year, 1, 1) + timedelta(int(each_day) - 1)
+        start_time = round_match_schedule.start_time
+        for each_time in range(round_match_schedule.number_of_timeslots):
+            for each_court in range(round_match_schedule.number_of_courts):
+                match_schedule = MatchSchedule.objects.create(day=day_of_year,
+                                                              court=each_court+1,
+                                                              time_slot=start_time,
+                                                              ladder_round=ladder_round)
+                print(f'match_Schedule: {match_schedule}')
+                match_schedule.save()
+            start_time = add_minutes(start_time, round_match_schedule.time_interval)
+
+
+def get_number_of_timeslots(start_time, end_time, time_interval):
+    if isinstance(start_time, str):
+        start_time = datetime.strptime(start_time, '%H:%M')
+    if isinstance(end_time, str):
+        end_time = datetime.strptime(end_time, '%H:%M')
+    if isinstance(time_interval, str):
+        time_interval = int(time_interval)
+    start_time_delta = start_time.hour
+    end_time_delta = end_time.hour
+    diff = end_time_delta - start_time_delta
+    minutes = diff * 60
+    number_of_timeslots = int(minutes / time_interval)
+    return number_of_timeslots
+
+
+def add_minutes(tm, minutes):
+    full_date = datetime(100, 1, 1, tm.hour, tm.minute, tm.second)
+    full_date = full_date + timedelta(minutes=minutes)
+    return full_date.time()

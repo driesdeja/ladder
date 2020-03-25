@@ -1,5 +1,6 @@
 from django.db import models
 from players import models as player_models
+from django.utils.timezone import now
 
 
 class Ladder(models.Model):
@@ -32,6 +33,32 @@ class Ladder(models.Model):
         return self.title
 
 
+class RoundMatchSchedule(models.Model):
+    THIRTY_MINUTES = 30
+    FOURTY_FIVE_MINUTES = 45
+    SIXTY_MINUTES = 60
+
+    time_intervals = [
+        (THIRTY_MINUTES, '30 min'),
+        (FOURTY_FIVE_MINUTES, '45 min'),
+        (SIXTY_MINUTES, '60 min')
+    ]
+
+    match_days = models.TextField()
+    number_of_courts = models.IntegerField()
+    number_of_timeslots = models.IntegerField(default=0)
+    start_time = models.TimeField()
+    end_time = models.TimeField(null=True)
+    time_interval = models.IntegerField(choices=time_intervals, default=THIRTY_MINUTES)
+
+    def __str__(self):
+        return f'Match Days: {self.match_days} - ' \
+               f'Number of Courts: {self.number_of_courts} - ' \
+               f'Start Time: {self.start_time} - ' \
+               f'End Time: {self.end_time} ' \
+               f'Time Interval: {self.time_interval}'
+
+
 class LadderRound(models.Model):
     CREATED = 0
     OPEN = 1
@@ -52,6 +79,7 @@ class LadderRound(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     status = models.IntegerField(choices=Status, default=CREATED)
     ladder = models.ForeignKey(Ladder, on_delete=models.CASCADE)
+    match_schedule = models.ForeignKey(RoundMatchSchedule, on_delete=models.CASCADE, null=True)
 
 
 class PlayersInLadderRound(models.Model):
@@ -143,10 +171,15 @@ class MatchSchedule(models.Model):
         (CLOSED, 'Closed')
     ]
 
+    day = models.DateField(default=now)
+    court = models.IntegerField(default=1)
     time_slot = models.TimeField()
-    match = models.ForeignKey(Match, on_delete=models.CASCADE)
+    match = models.ForeignKey(Match, null=True, on_delete=models.CASCADE)
     ladder_round = models.ForeignKey(LadderRound, on_delete=models.CASCADE)
     status = models.IntegerField(choices=Status, default=OPEN)
 
     def __str__(self):
-        return f'{self.time_slot} : {self.match.player1.first_name} vs {self.match.player2.first_name} - {self.ladder_roundn.start_date}'
+        return f'day: {self.day} - ' \
+               f'court: {self.court}' \
+               f'time_slot: {self.time_slot} : ' \
+               f' - Round start date: {self.ladder_round.start_date}'

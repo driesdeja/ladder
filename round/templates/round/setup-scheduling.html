@@ -1,0 +1,65 @@
+{% extends 'players/base.html' %}
+
+
+{% block content %}
+    <div class="panel panel-default">
+        <div class="row-cols-2">
+            <div class="panel-heading">{{ ladder.title }}</div>
+            <div class="panel-body">{{ ladder.start_date }} - {{ ladder.end_date }}</div>
+        </div>
+
+    </div>
+    {% if perms.round.can_administrate_ladder %}
+        <div class="container">
+            {% include 'round/ladder-admin-nav.html'  with  status=ladder_round.status %}
+        </div>
+    {% endif %}
+    <div class="container">
+        {% if ladder_round.match_schedule %}
+            <div class="row">
+                {{ ladder_round.match_schedule }}
+            <form method="POST">
+            {% csrf_token %}
+                <input type="submit" name="reset-schedule" value="Reset Schedule">
+            </form>
+            </div>
+        {% else %}
+            <div class="row">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="select-match-day">Select Match Day/s
+                        <ul>
+                            {% for day in days %}
+                                <li><input type="checkbox" name="match-day[]" value="{{ day|date:"z" }}"><label
+                                        for="matchday[]">{{ day|date:"l, j M" }}</label></li>
+
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="courts">
+                        <label for="number-of-courts">How many courts are you going to use?</label>
+                        <input name="number-of-courts" type="number" min="1" max="4" value="4">
+                    </div>
+                    <div class="time-schedule">
+                        <label for="start-time">What is the start time of the matches?</label>
+                        <input type="time" value="18:00" name="start-time">
+                        <label for="end-time">What is the last time games should start?</label>
+                        <input type="time" value="22:00" name="end-time">
+                        <label for="number-of-games">How many games will be played per day?</label>
+                        <input type="text" name="number-of-games">
+                        <label for="time-interval">How long between matches?</label>
+                        <select name="time-interval">
+                            <option value="30" selected>30 min</option>
+                            <option value="45">45 min</option>
+                            <option value="60">60 min</option>
+                        </select>
+                    </div>
+                    <div>
+                        <input type="submit" name="generate-match-schedule" value="Generate Match Schedule">
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+
+{% endblock content %}

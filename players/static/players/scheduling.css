@@ -5,8 +5,6 @@
 
 .time-slot {
     margin: 5px 0px;
-    display: inline-flex;
-    line-height: 80px;
     width: 100%;
     border-radius: 5px;
     border-style: dotted;
@@ -15,11 +13,29 @@
 }
 .time-slot .match-time {
     padding: 0 5px;
-    width: 10%;
     font-weight: bold;
     text-align: left;
 }
 
+.time-slot .time-row {
+   width: 100%;
+
+}
+
+.time-slot .time-row input{
+    height: 25px;
+    border: none;
+    background-color: #FFAE78;
+    color: black;
+    font-weight: bold;
+
+}
+
+.time-slot .matches-row {
+    width: 100%;
+    line-height: 80px;
+    display: inline-flex;
+}
 .time-slot .match-time-slot  {
     border-radius: 5px;
     margin: 2px 2px 2px 2px;

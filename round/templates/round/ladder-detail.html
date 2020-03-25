@@ -32,6 +32,10 @@
                             {{ form.end_date.errors }}
                             {{ form.end_date }}
                         </div>
+                        <div class="fieldWrapper">
+                            <label for="enable-scheduling">Enable Scheduling</label>
+                            <input type="checkbox" checked name="enable-scheduling">
+                        </div>
                         <input type="hidden" name="ladder" id="id_ladder" value="{{ ladder.id }}"/>
                         <input class="btn btn-info" type="submit" name="add_round" value="Add Round">
                     </form>

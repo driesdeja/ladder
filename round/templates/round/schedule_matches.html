@@ -14,6 +14,11 @@
         </div>
     {% endif %}
     <div class="container">
+        <form id="match-schedule-form" method="POST">
+            {% csrf_token %}
+            <input type="date" name="match-day" value="{{ match_day }}">
+            <input type="hidden" id="scheduled-matches" name="scheduled-matches">
+        </form>
         <div class="row">
             <button class="button" id="save-matcher" name="save-matcher" onclick="saveMatches()">Save</button>
         </div>
@@ -21,156 +26,193 @@
             <div class="col-8">
                 <div id="time-slots">
                     <div id="time-slot" class="time-slot">
-                        <div class="match-time">
-                            18:00
+                        <div class="time-row">
+                            <div class="match-time">
+                                <input type="time" value="18:00">
+                            </div>
                         </div>
-                        <div class="match-time-slot">
+                        <div class="matches-row">
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
+                            </div>
                         </div>
                     </div>
                     <div id="time-slot" class="time-slot">
-                        <div class="match-time">
-                            18:30
+                       <div class="time-row">
+                            <div class="match-time">
+                                <input type="time" value="18:30">
+                            </div>
                         </div>
-                        <div class="match-time-slot">
+                        <div class="matches-row">
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
+                            </div>
                         </div>
                     </div>
                     <div id="time-slot" class="time-slot">
-                        <div class="match-time">
-                            19:00
+                      <div class="time-row">
+                            <div class="match-time">
+                                <input type="time" value="19:00">
+                            </div>
                         </div>
-                        <div class="match-time-slot">
+                        <div class="matches-row">
+                            <div class="match-time-slot">
 
+                            </div>
+                            <div class="match-time-slot">
+
+                            </div>
+                            <div class="match-time-slot">
+
+                            </div>
+                            <div class="match-time-slot">
+
+                            </div>
                         </div>
-                        <div class="match-time-slot">
+                    </div>
 
+                    <div id="time-slot" class="time-slot">
+                        <div class="time-row">
+                            <div class="match-time">
+                                <input type="time" value="19:30">
+                            </div>
                         </div>
-                        <div class="match-time-slot">
+                        <div class="matches-row">
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
+                            </div>
+                            <div class="match-time-slot">
+
+                            </div>
+                            <div class="match-time-slot">
+
+                            </div>
                         </div>
                     </div>
                     <div id="time-slot" class="time-slot">
-                        <div class="match-time">
-                            19:30
+                       <div class="time-row">
+                            <div class="match-time">
+                                <input type="time" value="20:00">
+                            </div>
                         </div>
-                        <div class="match-time-slot">
+                        <div class="matches-row">
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
+                            </div>
                         </div>
                     </div>
                     <div id="time-slot" class="time-slot">
-                        <div class="match-time">
-                            20:00
+                       <div class="time-row">
+                            <div class="match-time">
+                                <input type="time" value="20:30">
+                            </div>
                         </div>
-                        <div class="match-time-slot">
+                        <div class="matches-row">
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
+                            </div>
                         </div>
                     </div>
                     <div id="time-slot" class="time-slot">
-                        <div class="match-time">
-                            20:30
+                       <div class="time-row">
+                            <div class="match-time">
+                                <input type="time" value="21:00">
+                            </div>
                         </div>
-                        <div class="match-time-slot">
+                        <div class="matches-row">
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
+                            </div>
                         </div>
                     </div>
                     <div id="time-slot" class="time-slot">
-                        <div class="match-time">
-                            21:00
+                       <div class="time-row">
+                            <div class="match-time">
+                                <input type="time" value="21:30">
+                            </div>
                         </div>
-                        <div class="match-time-slot">
+                        <div class="matches-row">
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
+                            </div>
                         </div>
                     </div>
                     <div id="time-slot" class="time-slot">
-                        <div class="match-time">
-                            21:30
+                        <div class="time-row">
+                            <div class="match-time">
+                                <input type="time" value="22:00">
+                            </div>
                         </div>
-                        <div class="match-time-slot">
+                        <div class="matches-row">
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                        <div class="match-time-slot">
+                            </div>
+                            <div class="match-time-slot">
 
-                        </div>
-                    </div>
-                    <div id="time-slot" class="time-slot">
-                        <div class="match-time">
-                            22:00
-                        </div>
-                        <div class="match-time-slot">
-
-                        </div>
-                        <div class="match-time-slot">
-
-                        </div>
-                        <div class="match-time-slot">
-
-                        </div>
-                        <div class="match-time-slot">
-
+                            </div>
                         </div>
                     </div>
                 </div>

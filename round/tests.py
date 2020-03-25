@@ -1,9 +1,10 @@
 from django.test import TestCase
-from datetime import date, datetime, timedelta
-from .models import PlayersInLadderRound, Ladder, LadderRound, Match, MatchResult
+from datetime import date, datetime, timedelta, time
+from .models import PlayersInLadderRound, Ladder, LadderRound, Match, MatchResult, RoundMatchSchedule, MatchSchedule
 from players.models import Player
 from .utils import add_player_to_round, ensure_player_not_already_in_round, ranking_change, update_ladder_ranking, \
-    get_full_ladder_details
+    get_full_ladder_details, date_range, add_intervals_to_start_time, get_number_of_timeslots, \
+    create_match_schedule_with_round_match_schedule
 
 
 # Create your tests here.
@@ -264,3 +265,45 @@ class RoundUtilsTestCase(TestCase):
         print(ladder_details)
 
         self.assertIsNotNone(self, ladder_details)
+
+    def test_date_range(self):
+        dates = date_range(datetime.now(), datetime.now() + timedelta(5))
+        for day in dates:
+            print(day)
+        self.assertIsNotNone(dates)
+
+    def test_add_intervals_to_start_time(self):
+        start_time = '18:00'
+        interval = 30
+        number_of_intervals = 4
+        end_time_obj = add_intervals_to_start_time(start_time, interval, number_of_intervals)
+        end_time_str = end_time_obj.strftime('%H:%M')
+        self.assertEqual(end_time_str, '20:00')
+
+    def test_get_number_of_timeslots(self):
+        start_time = datetime.strptime('18:00', '%H:%M')
+        end_time = datetime.strptime('22:00', '%H:%M')
+        time_interval = 60
+        number_of_timeslots = get_number_of_timeslots(start_time, end_time, time_interval)
+        self.assertEqual(number_of_timeslots, 4)
+
+    def test_create_match_schedule_with_round_match_schedule(self):
+
+        ladder_round = LadderRound.objects.all().first()
+        match_day = str(ladder_round.start_date.timetuple().tm_yday)
+        start_time = datetime.strptime('18:00', '%H:%M').time()
+        end_time = datetime.strptime('18:00', '%H:%M').time()
+        time_interval = 30
+        number_of_courts = 4
+        number_of_timeslots = 8
+        round_match_schedule = RoundMatchSchedule.objects.create(match_days=match_day,
+                                                                 number_of_courts=number_of_courts,
+                                                                 number_of_timeslots=number_of_timeslots,
+                                                                 start_time=start_time,
+                                                                 end_time=end_time,
+                                                                 time_interval=time_interval)
+        ladder_round.match_schedule = round_match_schedule
+        ladder_round.save()
+        create_match_schedule_with_round_match_schedule(ladder_round, round_match_schedule)
+        match_schedules = MatchSchedule.objects.filter(ladder_round=ladder_round)
+        self.assertEqual(32, len(match_schedules))

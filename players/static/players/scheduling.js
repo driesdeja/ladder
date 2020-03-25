@@ -84,9 +84,7 @@ function saveMatches() {
     //get all the time elements
     let timeElements = document.querySelectorAll('.time-slot');
     for (let i = 0; i < timeElements.length; i++) {
-        let time = timeElements[i].querySelector('.match-time').textContent;
-        console.log('Time :' + time);
-        let timeSlots = timeElements[i].querySelectorAll('.match-time-slot');
+        let time = timeElements[i].querySelector('.match-time').firstElementChild.getAttribute('value');
         let schedulableMatches = timeElements[i].querySelectorAll('.schedulable-match');
         for (let k=0; k < schedulableMatches.length; k++){
             console.log('schedulableMatch :' + schedulableMatches[k])
@@ -101,5 +99,9 @@ function saveMatches() {
             }
         }
     }
+
+    const scheduledMatches = document.getElementById('scheduled-matches');
+    scheduledMatches.setAttribute('value', JSON.stringify(matches));
+    document.getElementById('match-schedule-form').submit();
     console.log(matches);
 }
