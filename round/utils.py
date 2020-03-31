@@ -4,7 +4,7 @@ from .models import LadderRound
 from .models import Match
 from .models import MatchSchedule
 from players.models import Player
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, date
 
 
 def get_players_in_round(ladder_round):
@@ -412,7 +412,7 @@ def create_match_schedule_with_round_match_schedule(ladder_round, round_match_sc
         for each_time in range(round_match_schedule.number_of_timeslots):
             for each_court in range(round_match_schedule.number_of_courts):
                 match_schedule = MatchSchedule.objects.create(day=day_of_year,
-                                                              court=each_court+1,
+                                                              court=each_court + 1,
                                                               time_slot=start_time,
                                                               ladder_round=ladder_round)
                 print(f'match_Schedule: {match_schedule}')
@@ -439,3 +439,39 @@ def add_minutes(tm, minutes):
     full_date = datetime(100, 1, 1, tm.hour, tm.minute, tm.second)
     full_date = full_date + timedelta(minutes=minutes)
     return full_date.time()
+
+
+def validate_and_create_ladder_round(ladder, start_date, end_date):
+    ladder_rounds = LadderRound.objects.filter(ladder=ladder)
+    ladder_round = LadderRound(start_date=start_date, end_date=end_date, ladder=ladder)
+
+    if not start_date >= ladder.start_date:
+        raise ValueError(
+            f'The round can only start after the ladder started. Check the start date of the round.'
+            f'First day of the round is: {start_date}, end_date: {end_date} ')
+    if not start_date >= date.today():
+        raise ValueError(
+            f'Rounds can only be future dated. The selected start date is in the past ({datetime.strftime(start_date, "%d %b")}) ,'
+            f' today\'s date is : {datetime.strftime(datetime.today(), "%d %b")}')
+    ladder_rounds = list(
+        LadderRound.objects.filter(ladder=ladder).filter(end_date__gte=start_date))
+
+    if len(ladder_rounds) > 0:
+        raise ValueError(
+            f'Rounds may not overlap.  '
+            f'The selected start date for this round is before the end date of a previous round\'s end date!: '
+            f'This round\'s start date:  {datetime.strftime(start_date, "%d %b")} '
+            f'overlaps with end date of previous round: {datetime.strftime(ladder_rounds[0].end_date, "%d %b")}'
+        )
+    return ladder_round
+
+
+def re_open_round(ladder_round):
+
+    matches = Match.objects.filter(ladder_round=ladder_round)
+    if matches:
+        for match in matches:
+            match.delete()
+    ladder_round.status = ladder_round.OPEN
+    ladder_round.save()
+    return True

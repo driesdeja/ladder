@@ -1,30 +1,41 @@
-<ul class="progressbar">
-    {% if page_name == 'add-players' %}
-        <li class="active">
-            Add Players to Round
-        </li>
-    {% else %}
-        <li>
-            <a href="{% url "manage-players-in-round" ladder_round.id %}">Add Players to Round</a>
-        </li>
-    {% endif %}
-    </li>
-
-    {% if page_name == 'draw' %}
-        <li class="active">
-            Finalise Draw
+<div class="round-progress-bar">
+    <ul class="progressbar">
+        <li><a href="{% url 'create-ladder-round' ladder.id %}">Create Round</a></li>
+        {% if ladder_round %}
+            {% if ladder_round.status < ladder_round.CLOSED %}
+                <li><a href="{% url 'setup-scheduling' ladder_round.id %}">Setup Match Schedule</a></li>
+                <li><a href="{% url 'add-players-to-round' ladder_round.id %}">Select Players</a></li>
+                {% if ladder_round.status >= ladder_round.OPEN %}
+                    <li><a href="{% url 'round-draw' ladder_round.id %}">Create Draw</a></li>
+                    <li><a href="{% url 'close-draw' ladder_round.id %}">Close Draw</a></li>
+                {% else %}
+                    <li>Create Draw</li>
+                    <li>Close Draw</li>
+                {% endif %}
             {% else %}
-        <li>
-            <a href="{% url 'round-draw' ladder_round.id %}">Finalise Draw</a>
-        </li>
-    {% endif %}
-
-    {% if page_name == 'capture' %}
-        <li class="active">Capture Results</li>
-    {% else %}
-        <li>
-            <a href="{% url 'capture-results' ladder_round.id %}">Capture Results</a>
-        </li>
-    {% endif %}
-    </li>
-</ul>
+                <li>Create Round</li>
+                <li>Setup Match Schedule</li>
+                <li>Select Players</li>
+                <li>Create Draw</li>
+                <li>Close Draw</li>
+            {% endif %}
+            {% if ladder_round.status >= ladder_round.CLOSED and ladder_round.status < ladder_round.COMPLETED %}
+                <li><a href="{% url 'schedule-matches' ladder_round.id %}">Schedule Matches</a></li>
+                <li><a href="{% url 'capture-results' ladder_round.id %}">Capture Results</a></li>
+                <li><a href="{% url 'update-ranking' ladder_round.id %}">Update Ranking</a></li>
+            {% else %}
+                <li>Schedule Matches</li>
+                <li>Capture Results</li>
+                <li>Update Ranking</li>
+            {% endif %}
+        {% else %}
+            <li>Setup Match Schedule</li>
+            <li>Select Players</li>
+            <li>Create Draw</li>
+            <li>Close Draw</li>
+            <li>Schedule Matches</li>
+            <li>Capture Results</li>
+            <li>Update Ranking</li>
+        {% endif %}
+    </ul>
+</div>

@@ -23,6 +23,7 @@
 }
 
 .time-slot .time-row input{
+    border-radius: 5px;
     height: 25px;
     border: none;
     background-color: #FFAE78;
@@ -90,7 +91,16 @@
     min-height: 80px;
 }
 
-
+.match-slot {
+    display: inline-flex;
+    width: 100%;
+    border-radius: 5px;
+    border-style: solid;
+    border-width: thin;
+    background-color: #FFAE78;
+    min-height: 50px;
+    max-height: 100px;
+}
 
 
 

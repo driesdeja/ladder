@@ -16,9 +16,10 @@
     <div class="container">
         <div class="row">
             <div class="col-md-3 pl-0 pr-0 pt-2">
-                {% include 'round/round_detail_nav.html' with ladder_round=ladder_round ladder_rounds=ladder_rounds  %}
+                {% include 'round/round_detail_nav.html' with ladder_round=ladder_round ladder_rounds=ladder_rounds %}
             </div>
             <div class="col-md-9 pt-2 pr-0">
+
                 {% if matches %}
                     <div class="row">
                         {% for match in matches %}

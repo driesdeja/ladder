@@ -86,14 +86,14 @@ function saveMatches() {
     for (let i = 0; i < timeElements.length; i++) {
         let time = timeElements[i].querySelector('.match-time').firstElementChild.getAttribute('value');
         let schedulableMatches = timeElements[i].querySelectorAll('.schedulable-match');
-        for (let k=0; k < schedulableMatches.length; k++){
+        for (let k = 0; k < schedulableMatches.length; k++) {
             console.log('schedulableMatch :' + schedulableMatches[k])
             let inputs = schedulableMatches[k].getElementsByTagName('input');
-            for (let j=0; j < inputs.length; j++){
+            for (let j = 0; j < inputs.length; j++) {
                 console.log('input: ' + inputs[j].value);
                 let match = {
-                    'timeslot' : time.trim(),
-                    'match' : inputs[j].value
+                    'timeslot': time.trim(),
+                    'match': inputs[j].value
                 }
                 matches.push(match);
             }

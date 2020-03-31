@@ -1,0 +1,44 @@
+{% extends 'players/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+    {% include 'round/header-banner.html' with ladder=ladder_round.ladder %}
+    {% include 'round/ladder-admin-nav.html' with page_name='overview' ladder=ladder_round.ladder ladder_round=ladder_round %}
+    <div class="row">
+
+        <div class="col-md-3 pt-2">
+            {% include 'round/round_detail_nav.html' with ladder_round=ladder_round ladder_rounds=ladder_rounds %}
+        </div>
+
+        <div class="col-md-9 pt-2">
+            <div class="info-header" >
+
+            </div>
+            <!-- display different stuff depending on status of the round -->
+            {% if match_schedule %}
+                <div>
+                    {{ match_schedule }}
+                </div>
+            {% else %}
+                <div>
+                    This round does not have a schedule
+                </div>
+            {% endif %}
+            {% if scheduled_matches %}
+                <div>
+                    {% for each_match in scheduled_matches %}
+                        {{ each_match }}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div>
+                    This round does not have any scheduled matches
+                </div>
+            {% endif %}
+            {% if matches %}
+                <div class="col-md-9 pt-2 pr-0">
+                    {% include 'round/include-round-results.html' with matches=matches %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock content %}

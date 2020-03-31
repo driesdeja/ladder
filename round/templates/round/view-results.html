@@ -18,68 +18,7 @@
                 {% include 'round/round_detail_nav.html' with ladder_round=ladder_round ladder_rounds=ladder_rounds  %}
             </div>
             <div class="col-md-9 pt-2 pr-0">
-                <table id="match-result-table" class="table table-link">
-                    <thead>
-                    <tr>
-                        <th>
-                            Player 1
-                        </th>
-                        <th class="text-align-center">
-                            Games
-                        </th>
-                        <th>
-                            Player 2
-                        </th>
-                        <th class="text-align-center">
-                            Games
-                        </th>
-
-                    </tr>
-                    </thead>
-                    {% for match in matches %}
-                        <tr>
-                            {% if match.result == match.PLAYER_1_WON %}
-                                <td class="">
-                                    <a href="{% url 'player-profile' match.player1.id %}">
-                                        {{ match.player1.first_name }} {{ match.player1.last_name }}
-                                    </a>
-                                </td>
-                                <td class="text-align-center">
-                                    {{ match.games_for_player1 }}
-                                </td>
-                            {% else %}
-                                <td class="">
-                                    <a href="{% url 'player-profile' match.player1.id %}">
-                                        {{ match.player1.first_name }} {{ match.player1.last_name }}
-                                    </a>
-                                </td>
-                                <td class="text-align-center">
-                                    {{ match.games_for_player1 }}
-                                </td>
-                            {% endif %}
-                            {% if match.result == match.PLAYER_2_WON %}
-                                <td class="">
-                                    <a href="{% url 'player-profile' match.player2.id %}">
-                                        {{ match.player2.first_name }} {{ match.player2.last_name }}
-                                    </a>
-                                </td>
-                                <td class="text-align-center">
-                                    {{ match.games_for_player2 }}
-                                </td>
-                            {% else %}
-                                <td class="">
-                                    <a href="{% url 'player-profile' match.player1.id %}">
-                                        {{ match.player2.first_name }} {{ match.player2.last_name }}
-                                    </a>
-                                </td>
-                                <td class="text-align-center">
-                                    {{ match.games_for_player2 }}
-                                </td>
-                            {% endif %}
-                        </tr>
-
-                    {% endfor %}
-                </table>
+                {% include 'round/include-round-results.html' with matches=matches %}
             </div>
         </div>
     </div>

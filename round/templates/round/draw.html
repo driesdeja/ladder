@@ -1,55 +1,54 @@
 {% extends 'players/base.html' %}
 
 {% block content %}
-    <div class="container">
-        {% include 'round/ladder-admin-nav.html' with page_name='draw' %}
-    </div>
-    <form method="post" action="{% url 'close-draw' ladder_round.id %}">
-        {% csrf_token %}
-        <div class="container">
-            <div class="row">
-                <div class="col text-center">
-                    <p>Draw for ladder : {{ ladder_round.start_date }}</p>
-                    {% if ladder_round.status < ladder_round.CLOSED and players|length|divisibleby:2 %}
-                        <p><input type="submit" class="btn btn-outline-info" name="close" value="Close Draw"/></p>
-                    {% endif %}
+    {% include 'round/header-banner.html' with ladder=ladder_round.ladder %}
+    {% include 'round/ladder-admin-nav.html' with page_name='setup-draw' ladder=ladder_round.ladder ladder_round=ladder_round %}
+    <div class="row">
+        <div class="col-3 pt-2">
+            {% include 'round/round_detail_nav.html' with ladder_round=ladder_round ladder_rounds=ladder_rounds %}
+        </div>
+        <div class="col-9">
+            <form method="post" action="{% url 'close-draw' ladder_round.id %}">
+                {% csrf_token %}
+                <p>Draw for ladder : {{ ladder_round.start_date }}</p>
 
-                        <p><a href="{% url 'schedule-matches' ladder_round.id %}">Schedule Matches</a> </p>
-
-                </div>
-                <input type="hidden" name="round_id" value="{{ ladder_round.id }}"/>
-            </div>
-
-            <div class="row">
-                <div class="container-fluid">
-                    <table class="table text-center">
-                        <thead>
+                {% if ladder_round.status < ladder_round.CLOSED and players|length|divisibleby:2 %}
+                    <p><input type="submit" class="btn btn-outline-info" name="close" value="Close Draw"/></p>
+                    <p>The round must be closed before scheduling games.</p>
+                {% elif ladder_round.status == ladder_round.CLOSED %}
+                    <p>Re-open draw</p>
+                    <p><a href="{% url 'schedule-matches' ladder_round.id %}">Schedule Matches</a></p>
+                {% endif %}
+                <table class="table text-center">
+                    <thead>
+                    <tr>
+                        <th class="text-center">Player 1</th>
+                        <th></th>
+                        <th class="text-center">Player 2</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <input type="hidden" name="number-of-matches" value="{{ matches|length }}"/>
+                    {% for match in matches %}
                         <tr>
-                            <th class="text-center">Player 1</th>
-                            <th></th>
-                            <th class="text-center">Player 2</th>
+                            <td>{{ match.player1.first_name }} {{ match.player1.last_name }}
+                                ({{ match.player1.ranking }})
+                            </td>
+                            <td>VS</td>
+                            <td>{{ match.player2.first_name }} {{ match.player2.last_name }}
+                                ({{ match.player2.ranking }})
+                            </td>
                         </tr>
-                        </thead>
-                        <tbody>
-                        <input type="hidden" name="number-of-matches" value="{{ matches|length }}"/>
-                        {% for match in matches %}
-                            <tr>
-                                <input type="hidden" name="{{ forloop.counter }}-player1"
-                                       value="{{ match.player1.id }}"/>
-                                <td>{{ match.player1.first_name }} {{ match.player1.last_name }}
-                                    ({{ match.player1.ranking }})
-                                </td>
-                                <td>VS</td>
-                                <td>{{ match.player2.first_name }} {{ match.player2.last_name }}
-                                    ({{ match.player2.ranking }})
-                                </td>
-                                <input type="hidden" name="{{ forloop.counter }}-player2"
-                                       value="{{ match.player2.id }}"/>
-                            </tr>
-                        {% endfor matches %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-    </form>
+                    {% endfor matches %}
+                    </tbody>
+                </table>
+                <input type="hidden" name="round_id" value="{{ ladder_round.id }}"/>
+            </form>
+        </div>
+
+    </div>
+
+
+
+
 {% endblock content %}

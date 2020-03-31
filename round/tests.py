@@ -4,7 +4,7 @@ from .models import PlayersInLadderRound, Ladder, LadderRound, Match, MatchResul
 from players.models import Player
 from .utils import add_player_to_round, ensure_player_not_already_in_round, ranking_change, update_ladder_ranking, \
     get_full_ladder_details, date_range, add_intervals_to_start_time, get_number_of_timeslots, \
-    create_match_schedule_with_round_match_schedule
+    create_match_schedule_with_round_match_schedule, validate_and_create_ladder_round
 
 
 # Create your tests here.
@@ -31,7 +31,8 @@ class RoundUtilsTestCase(TestCase):
 
         self.ladder = Ladder.objects.create(title='Fairy Tale Ladder', start_date=date.today())
 
-        self.ladder_round = LadderRound.objects.create(start_date=date.today(), ladder=self.ladder)
+        self.ladder_round = LadderRound.objects.create(start_date=date.today(), end_date=date.today() + timedelta(days=7),
+                                                       ladder=self.ladder)
 
         match1 = Match.objects.create(player1=Player.objects.get(ranking=1), player2=Player.objects.get(ranking=2),
                                       ladder_round=LadderRound.objects.all().first())
@@ -307,3 +308,18 @@ class RoundUtilsTestCase(TestCase):
         create_match_schedule_with_round_match_schedule(ladder_round, round_match_schedule)
         match_schedules = MatchSchedule.objects.filter(ladder_round=ladder_round)
         self.assertEqual(32, len(match_schedules))
+
+    def test_validate_and_create_ladder_round(self):
+        start_date = date.today() + timedelta(weeks=10)
+        end_date = start_date + timedelta(days=7)
+
+        ladder_round = validate_and_create_ladder_round(self.ladder, start_date, end_date)
+        self.assertIsNotNone(ladder_round)
+        self.assertTrue(ladder_round.start_date == start_date)
+        with self.assertRaises(ValueError):
+            start_date = date.today() + timedelta(days=1)
+            end_date = start_date + timedelta(days=7)
+            validate_and_create_ladder_round(self.ladder, start_date, end_date)
+            start_date = date.today() - timedelta(days=7)
+            end_date = start_date + timedelta(days=7)
+            validate_and_create_ladder_round(self.ladder, start_date, end_date)

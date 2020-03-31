@@ -1,71 +1,11 @@
 {% extends 'players/base.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-    <div class="panel panel-default">
-        <div class="row">
-            <div class="col-4">
-                <div class="panel-heading">{{ ladder.title }}</div>
-                <div class="panel-body">{{ ladder.start_date }} - {{ ladder.end_date }}</div>
-            </div>
-            <div class="col-8">
-                <p class="panel-heading"></p>
-            </div>
-        </div>
-    </div>
+    {% include 'round/header-banner.html' with ladder=ladder %}
+    {% include 'round/ladder-admin-nav.html' with page_name='draw' ladder_id=ladder.id %}
+
     <div class="row">
-        <div class="col-md-3">
-            {% if perms.round.add_round %}
-                {% if ladder.status < ladder.CLOSED %}
-                    <div class="panel-heading">Add Round to Ladder</div>
-                    <form method="POST">
-                        {% csrf_token %}
-                        {{ form.non_field_errors }}
-                        <div class="fieldWrapper">
-                            {% if form.start_date.errors %}
-                                {% for error in form.start_date.errors %}
-                                    <p class="error">{{ error|escape }}</p>
-                                {% endfor %}
-                            {% endif %}
-                            {{ form.start_date }}
-                        </div>
-                        <div class="fieldWrapper">
-                            {{ form.end_date.errors }}
-                            {{ form.end_date }}
-                        </div>
-                        <div class="fieldWrapper">
-                            <label for="enable-scheduling">Enable Scheduling</label>
-                            <input type="checkbox" checked name="enable-scheduling">
-                        </div>
-                        <input type="hidden" name="ladder" id="id_ladder" value="{{ ladder.id }}"/>
-                        <input class="btn btn-info" type="submit" name="add_round" value="Add Round">
-                    </form>
-                    {% if closeable %}
-                        <div class="side-panel-form">
-                            <h2>Close Ladder</h2>
-                            <form method="POST">
-                                {% csrf_token %}
-                                {{ ladder_status_form.end_date }}
-                                <input class="btn btn-outline-info" type="submit" name="close_ladder"
-                                       value="Close Ladder">
-                            </form>
-                        </div>
-                    {% endif %}
-                {% endif %}
-            {% else %}
-                {% if perms.ladder.add_ladder %}
-                    <h2>Re-open Ladder</h2>
-                    <form method="POST">
-                        {% csrf_token %}
-                        <input class="btn btn-outline-info" type="submit" name="re_open" value="Re-Open Ladder">
-                        {% if ladder.status == ladder.CANCELLED %}
-                            <input class="btn btn-outline-info" type="submit" name="delete_ladder"
-                                   value="Delete Ladder">
-                        {% endif %}
-                    </form>
-                {% endif %}
-            {% endif %}
-        </div>
-        <div class="col-md-9">
+        <div class="col pt-2 pr-3">
             <table class="table text-left">
                 <thead>
                 <tr>
@@ -85,13 +25,13 @@
                         <td>{{ round.get_status_display }}</td>
                         <td>
                             {% if round.status == round.COMPLETED %}
-                                <a href="{% url 'view-results' round.id %}">View Results</a>
+                                <a href="{% url 'admin-round-detail' round.id %}">View Results</a>
                             {% elif round.status == round.CANCELLED %}
                                 Round Cancelled - Nothing to see here
-                            {% elif round.status == round.CLOSED%}
+                            {% elif round.status == round.CLOSED %}
                                 <a href="{% url 'capture-results' round.id %}">Capture Results</a>
                             {% else %}
-                                <a href="{% url 'round-detail' round.id %}">Manage Round</a>
+                                <a href="{% url 'admin-round-detail' round.id %}">Manage Round</a>
                             {% endif %}
                         </td>
                     </tr>

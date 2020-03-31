@@ -1,18 +1,8 @@
 {% extends 'players/base.html' %}
 
 {% block content %}
-    <div class="panel panel-default">
-        <div class="row-cols-2">
-            <div class="panel-heading">{{ ladder.title }}</div>
-            <div class="panel-body">{{ ladder.start_date }} - {{ ladder.end_date }}</div>
-        </div>
-
-    </div>
-    {% if perms.round.can_administrate_ladder %}
-        <div class="container">
-            {% include 'round/ladder-admin-nav.html'  with  status=ladder_round.status %}
-        </div>
-    {% endif %}
+    {% include 'round/header-banner.html' with ladder=ladder_round.ladder %}
+    {% include 'round/ladder-admin-nav.html' with page_name='schedule-matches' ladder=ladder_round.ladder ladder_round=ladder_round %}
     <div class="container">
         <form id="match-schedule-form" method="POST">
             {% csrf_token %}

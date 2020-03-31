@@ -2,109 +2,130 @@
 
 
 {% block content %}
-    <div class="container">
-        {% include 'round/ladder-admin-nav.html' with page_name='add-players' status=ladder_round.status %}
-    </div>
-    <form method="post" action="{% url 'add-players-to-round' ladder_round.id %}">
-        {% csrf_token %}
-        <div class="container">
-            <div class="panel panel-default">
-                <div class="row">
-                    <div class="col">
-                        <div class="panel-heading">Add or Remove players from the round</div>
-                        <div class="panel-body">Status: {{ ladder_round.get_status_display }}</div>
-                        <div class="panel-body">Start Date: {{ ladder_round.start_date }} - End
-                            Date: {{ ladder_round.end_date }}</div>
-                    </div>
-                </div>
-            </div>
+    {% include 'round/header-banner.html' with ladder=ladder_round.ladder %}
+    {% include 'round/ladder-admin-nav.html' with page_name='add-players' ladder_round=ladder_round %}
 
-            <div class="row">
-                <div class="col">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Ranking</th>
-                            <th>Name</th>
-                            <th class="text-center">
-                                Add All
-                                <input type="checkbox" onClick="toggle(this,'add_to_round[]')"/>
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for player_not_in_round in players_not_in_round %}
-                            <tr>
-                                <td>{{ player_not_in_round.ranking }}</td>
-                                <td>{{ player_not_in_round.first_name }} {{ player_not_in_round.last_name }}</td>
-                                <td class="text-center">
-                                    {% if ladder_round.status < 2 %}
-                                        <input name='add_to_round[]' id="player{{ player_not_in_round.id }}"
-                                               value={{ player_not_in_round.id }} type="checkbox">
-                                    {% else %}
-                                        <span class="warning">{{ ladder_round.get_status_display }}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor players_not_in_round %}
-
-                        </tbody>
-                    </table>
-
-                </div>
-
-                <div class="col text-center">
-                    <div class="row align-items-center justify-content-center">
-                        <strong>Add or Remove Players:</strong>
-                    </div>
-                    <div class="row align-items-center justify-content-center">
-                        <button class="btn" type="submit" name="add_players">>></button>
-                    </div>
-                    <div class="row align-items-center justify-content-center">
-                        <button class="btn" type="submit" name="remove_players"><<</button>
-                    </div>
-                </div>
-
-                <div class="col">
-                    Number of players in round:
-                    {% if players_in_round|length|divisibleby:2 %}
-                        <span class="even">{{ players_in_round|length }}</span>
-                    {% else %}
-                        <span class="odd">{{ players_in_round|length }}</span>
-                    {% endif %}
-                    <table>
-                        <thead>
-                        <tr>
-                            <th scope="col">Rank in Round</th>
-                            <th scope="col">Name</th>
-                            <th scope="col" class="text-center">
-                                Remove All
-                                <input type="checkbox" onClick="toggle(this,'remove_from_round[]')"/>
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for player_in_round in players_in_round %}
-                            <tr>
-                                <td>{{ forloop.counter }}</td>
-                                <td>{{ player_in_round.first_name }} {{ player_in_round.last_name }}</td>
-                                <td class="text-center">
-                                    {% if ladder_round.status < 2 %}
-                                        <input name='remove_from_round[]' id="player{{ player_in_round.id }}"
-                                               value={{ player_in_round.id }} type="checkbox">
-                                    {% else %}
-                                        <span class="warning">{{ ladder_round.get_status_display }}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor players_not_in_round %}
-                        </tbody>
-                    </table>
-                </div>
-                <input type="hidden" name="ladder_round" value="{{ ladder_round.id }}"/>
+    <div class="row">
+        <div class="col pt-2">
+            <div class="info-header">
+                <p>Select players to compete in the round starting {{ ladder_round.start_date|date:'d M' }}:</p>
             </div>
         </div>
-    </form>
+    </div>
+    <div class="row">
+        <div class="col-3 pt-2">
+            {% include 'round/round_detail_nav.html' with ladder_round=ladder_round ladder_rounds=ladder_rounds %}
+        </div>
+        <div class="col-9">
+            <form method="post" action="{% url 'add-players-to-round' ladder_round.id %}">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col">
+                        {% if not round_has_players %}
+                            <div class="row pt-2 ml-0 mr-0 content-row">
+                                Copy the previous rounds players to this round
+                                ({{ previous_round.start_date|date:'d M' }}, {{ number_of_players_in_previous_round }}
+                                players):
+                                <input type="submit" name="copy_players" value="Copy" \>
+                            </div>
+                        {% else %}
+                            <div class="row pt-2 ml-0 mr-0 content-row">
+                                <input type="submit" name="view_draw" value="View Draw">
+                            </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col content-column">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Ranking</th>
+                                <th>Name</th>
+                                <th class="text-center">
+                                    Add All
+                                    <input type="checkbox" onClick="toggle(this,'add_to_round[]')"/>
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for player_not_in_round in players_not_in_round %}
+                                <tr>
+                                    <td>{{ player_not_in_round.ranking }}</td>
+                                    <td>{{ player_not_in_round.first_name }} {{ player_not_in_round.last_name }}</td>
+                                    <td class="text-center">
+                                        {% if ladder_round.status < 2 %}
+                                            <input name='add_to_round[]' id="player{{ player_not_in_round.id }}"
+                                                   value={{ player_not_in_round.id }} type="checkbox">
+                                        {% else %}
+                                            <span class="warning">{{ ladder_round.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor players_not_in_round %}
+
+                            </tbody>
+                        </table>
+
+                    </div>
+
+                    <div class="col text-center content-column">
+                        <div class="row align-items-center justify-content-center">
+                            <strong>Add or Remove Players:</strong>
+                        </div>
+                        <div class="row align-items-center justify-content-center">
+                            <button class="btn" type="submit" name="add_players">>></button>
+                        </div>
+                        <div class="row align-items-center justify-content-center">
+                            <button class="btn" type="submit" name="remove_players"><<</button>
+                        </div>
+                    </div>
+
+                    <div class="col content-column">
+                        Number of players in round:
+                        {% if players_in_round|length|divisibleby:2 %}
+                            <span class="even">{{ players_in_round|length }}</span>
+                        {% else %}
+                            <span class="odd">{{ players_in_round|length }}</span>
+                        {% endif %}
+                        <table>
+                            <thead>
+                            <tr>
+                                <th scope="col">Rank in Round</th>
+                                <th scope="col">Name</th>
+                                <th scope="col" class="text-center">
+                                    Remove All
+                                    <input type="checkbox" onClick="toggle(this,'remove_from_round[]')"/>
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for player_in_round in players_in_round %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ player_in_round.first_name }} {{ player_in_round.last_name }}</td>
+                                    <td class="text-center">
+                                        {% if ladder_round.status < 2 %}
+                                            <input name='remove_from_round[]' id="player{{ player_in_round.id }}"
+                                                   value={{ player_in_round.id }} type="checkbox">
+                                        {% else %}
+                                            <span class="warning">{{ ladder_round.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor players_not_in_round %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <input type="hidden" name="ladder_round" value="{{ ladder_round.id }}"/>
+
+
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function toggle(source, target) {
             checkboxes = document.getElementsByName(target);

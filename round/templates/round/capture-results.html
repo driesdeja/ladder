@@ -1,16 +1,8 @@
 {% extends 'players/base.html' %}
 
 {% block content %}
-    <div class="panel panel-default">
-        <div class="row-cols-2">
-            <div class="panel-heading">Capture Results for Ladder round</div>
-            <div class="panel-body">{{ ladder_round.start_date }} - {{ ladder_round.end_date }}</div>
-        </div>
-
-    </div>
-    <div class="container">
-        {% include 'round/ladder-admin-nav.html' with page_name='capture' status=ladder_round.status %}
-    </div>
+    {% include 'round/header-banner.html' with ladder=ladder_round.ladder %}
+    {% include 'round/ladder-admin-nav.html' with page_name='schedule-matches' ladder=ladder_round.ladder ladder_round=ladder_round %}
 
     {% if ladder_round.status == 2 %}
         <form method="post" action="{% url 'capture-results' ladder_round.id %}">
@@ -102,7 +94,7 @@
                             <td>
                                 {% if match.result == match.NOT_PLAYED %}
                                     <input type="date" name="match[{{ match.id }}][date-played]"
-                                       value={% now "SHORT_DATE_FORMAT" %}>
+                                           value={% now "SHORT_DATE_FORMAT" %}>
                                 {% else %}
                                     {{ match.date_played|date:'d-m-Y' }}
                                 {% endif %}
@@ -112,10 +104,10 @@
                                 {% if ladder_round.status != ladder_round.COMPLETED and ladder_round.status != ladder_round.CANCELLED %}
                                     {% if match.result != match.NOT_PLAYED %}
                                         <a href="{% url 'edit-match' ladder_round.id match.id %}">Edit</a>
-                                       {% endif %}
-                                       {% else %}
-                                           {{ ladder_round.get_status_display }}
-                                       {% endif %}
+                                    {% endif %}
+                                {% else %}
+                                    {{ ladder_round.get_status_display }}
+                                {% endif %}
                             </td>
                         </tr>
 

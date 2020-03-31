@@ -1,0 +1,35 @@
+{% extends 'players/base.html' %}
+{% load static %}
+{% block content %}
+    {% include 'round/header-banner.html' with ladder=ladder %}
+    {% include 'round/ladder-admin-nav.html' with page_name='draw' ladder_id=ladder.id %}
+
+
+
+
+    </div>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-3 pt-2">
+                {% include 'round/round_detail_nav.html' with ladder_round=ladder_round ladder_rounds=ladder_rounds %}
+            </div>
+            <div class="col-9">
+                <div class="info-header">
+                    <p>Select start and end days of the new round:</p>
+                </div>
+                <p class="font-italic">The dates for the latest round is: {{ last_round.start_date|date:'d M' }}
+                    - {{ last_round.end_date|date:'d M' }}</p>
+                <label for="start_date">First day of the round:</label>
+                <input type="date" name="start_date">
+                <lable for="end-date">Last day of the round:</lable>
+                <input type="date" name="end_date">
+                <label for="setup_schedule">Do you want to setup a Match Schedule?</label>
+                <input type="checkbox" name="setup_schedule" checked value="setup_schedule">
+                <input class="next-button" type="submit" name="dates" value="Next>>"/>
+            </div>
+
+        </div>
+    </form>
+    <script src="{% static 'players/create_round.js' %}"></script>
+{% endblock content %}
