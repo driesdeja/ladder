@@ -4,7 +4,8 @@ from .models import PlayersInLadderRound, Ladder, LadderRound, Match, MatchResul
 from players.models import Player
 from .utils import add_player_to_round, ensure_player_not_already_in_round, ranking_change, update_ladder_ranking, \
     get_full_ladder_details, date_range, add_intervals_to_start_time, get_number_of_timeslots, \
-    create_match_schedule_with_round_match_schedule, validate_and_create_ladder_round
+    create_match_schedule_with_round_match_schedule, validate_and_create_ladder_round, date_for_day_of_the_year, \
+    save_scheduled_matches
 
 
 # Create your tests here.
@@ -31,7 +32,8 @@ class RoundUtilsTestCase(TestCase):
 
         self.ladder = Ladder.objects.create(title='Fairy Tale Ladder', start_date=date.today())
 
-        self.ladder_round = LadderRound.objects.create(start_date=date.today(), end_date=date.today() + timedelta(days=7),
+        self.ladder_round = LadderRound.objects.create(start_date=date.today(),
+                                                       end_date=date.today() + timedelta(days=7),
                                                        ladder=self.ladder)
 
         match1 = Match.objects.create(player1=Player.objects.get(ranking=1), player2=Player.objects.get(ranking=2),
@@ -323,3 +325,40 @@ class RoundUtilsTestCase(TestCase):
             start_date = date.today() - timedelta(days=7)
             end_date = start_date + timedelta(days=7)
             validate_and_create_ladder_round(self.ladder, start_date, end_date)
+
+    def test_date_for_day_of_the_year(self):
+        # non leap year
+        year = 2019
+        day = 60
+        date_for_year = date_for_day_of_the_year(day, year)
+        self.assertEqual(date_for_year, datetime(2019, 3, 1))
+        year = 2020
+        day = 60
+        date_for_year = date_for_day_of_the_year(day, year)
+        self.assertEqual(date_for_year, datetime(2020, 2, 29))
+        # test with string
+        year = '2020'
+        day = '60'
+        date_for_year = date_for_day_of_the_year(day, year)
+        self.assertEqual(date_for_year, datetime(2020, 2, 29))
+
+    def test_save_scheduled_matches(self):
+
+        match1 = Match.objects.create(player1=Player.objects.get(ranking=1), player2=Player.objects.get(ranking=2),
+                                      ladder_round=LadderRound.objects.all().first())
+        match2 = Match.objects.create(player1=Player.objects.get(ranking=3), player2=Player.objects.get(ranking=4),
+                                      ladder_round=LadderRound.objects.all().first())
+        match3 = Match.objects.create(player1=Player.objects.get(ranking=5), player2=Player.objects.get(ranking=6),
+                                      ladder_round=LadderRound.objects.all().first())
+        match4 = Match.objects.create(player1=Player.objects.get(ranking=7), player2=Player.objects.get(ranking=8),
+                                      ladder_round=LadderRound.objects.all().first())
+
+        scheduled_matches = [{'day': '86',
+                              'matches': [{'timeslot': '06:00', 'match': match1.id},
+                                          {'timeslot': '06:00', 'match': match2.id},
+                                          {'timeslot': '06:00', 'match': match3.id},
+                                          {'timeslot': '06:00', 'match': match4.id}]}
+                             ]
+        number_of_matches_saved = save_scheduled_matches(LadderRound.objects.all().first(), scheduled_matches)
+        print(f'Number of matches saved: {number_of_matches_saved}')
+        self.assertTrue(number_of_matches_saved > 0)

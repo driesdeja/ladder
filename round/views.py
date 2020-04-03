@@ -493,10 +493,15 @@ def player_profile(request, player_id):
 def schedule_matches(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
     matches = Match.objects.filter(ladder_round=ladder_round)
-    schedule = {}
+
+    schedule = ladder_round.match_schedule
+    if schedule:
+        pass
+    else:
+        messages.error(request, 'Please setup a schedule before schedulding matches')
+        return redirect(setup_scheduling_for_round, ladder_round.id)
     if request.POST:
         scheduled_matches = json.loads(request.POST.get('scheduled-matches'))
-        match_day = request.POST.get('match-day')
         # todo Validate that match_day is between the start and end dates of the ladder_round
         if schedule_matches:
             for scheduled_match in scheduled_matches:

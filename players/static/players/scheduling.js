@@ -79,29 +79,42 @@ function handleDrop(e) {
 }
 
 function saveMatches() {
-    const matches = [];
+    const days_matches = [];
     console.log('saving matches');
     //get all the time elements
-    let timeElements = document.querySelectorAll('.time-slot');
-    for (let i = 0; i < timeElements.length; i++) {
-        let time = timeElements[i].querySelector('.match-time').firstElementChild.getAttribute('value');
-        let schedulableMatches = timeElements[i].querySelectorAll('.schedulable-match');
-        for (let k = 0; k < schedulableMatches.length; k++) {
-            console.log('schedulableMatch :' + schedulableMatches[k])
-            let inputs = schedulableMatches[k].getElementsByTagName('input');
-            for (let j = 0; j < inputs.length; j++) {
-                console.log('input: ' + inputs[j].value);
-                let match = {
-                    'timeslot': time.trim(),
-                    'match': inputs[j].value
+    let match_days = document.querySelectorAll('.match-day')
+
+    console.log(match_days)
+    for (let m = 0; m < match_days.length; m++) {
+        let match_day = match_days[m].querySelector('.match-day-date').value
+        console.log(match_day);
+        let timeElements = match_days[m].querySelectorAll('.time-slot');
+        let matches = []
+        for (let i = 0; i < timeElements.length; i++) {
+            let time = timeElements[i].querySelector('.match-time').firstElementChild.getAttribute('value');
+            let schedulableMatches = timeElements[i].querySelectorAll('.schedulable-match');
+            for (let k = 0; k < schedulableMatches.length; k++) {
+                console.log('schedulableMatch :' + schedulableMatches[k])
+                let inputs = schedulableMatches[k].getElementsByTagName('input');
+                for (let j = 0; j < inputs.length; j++) {
+                    console.log('input: ' + inputs[j].value);
+                    let match = {
+                        'timeslot': time.trim(),
+                        'match': inputs[j].value
+                    }
+                    matches.push(match);
                 }
-                matches.push(match);
             }
         }
+        days_matches.push({'day': match_day,'matches': matches})
+
+
+
     }
 
+
     const scheduledMatches = document.getElementById('scheduled-matches');
-    scheduledMatches.setAttribute('value', JSON.stringify(matches));
+    scheduledMatches.setAttribute('value', JSON.stringify(days_matches));
     document.getElementById('match-schedule-form').submit();
-    console.log(matches);
+    console.log(days_matches);
 }

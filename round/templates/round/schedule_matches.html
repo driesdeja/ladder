@@ -1,12 +1,11 @@
 {% extends 'players/base.html' %}
-
+{% load round_custom_tags %}
 {% block content %}
     {% include 'round/header-banner.html' with ladder=ladder_round.ladder %}
     {% include 'round/ladder-admin-nav.html' with page_name='schedule-matches' ladder=ladder_round.ladder ladder_round=ladder_round %}
     <div class="container">
         <form id="match-schedule-form" method="POST">
             {% csrf_token %}
-            <input type="date" name="match-day" value="{{ match_day }}">
             <input type="hidden" id="scheduled-matches" name="scheduled-matches">
         </form>
         <div class="row">
@@ -14,200 +13,32 @@
         </div>
         <div class="row">
             <div class="col-8">
-                <div id="time-slots">
-                    <div id="time-slot" class="time-slot">
-                        <div class="time-row">
-                            <div class="match-time">
-                                <input type="time" value="18:00">
-                            </div>
-                        </div>
-                        <div class="matches-row">
-                            <div class="match-time-slot">
+                {% for day in schedule.match_days|as_list:',' %}
+                    <div class="match-day">
+                        <h2>{{ day|date_for_day_of_year:2020|date:'l j F, Y' }}</h2>
+                        <input type="hidden" class="match-day-date" value="{{ day }}">
+                        <div id="time-slots">
+                            {% for time in schedule.number_of_timeslots|times %}
+                                <div id="time-slot" class="time-slot">
+                                    <div class="time-row">
+                                        <div class="match-time">
+                                            {% timeslot schedule.start_time forloop.counter0 schedule.time_interval as times_slot_value %}
+                                            <input type="time" value="{{ times_slot_value|date:'h:i' }}">
+                                        </div>
+                                    </div>
+                                    <div class="matches-row">
+                                        {% for court in schedule.number_of_courts|times %}
+                                            <div class="match-time-slot">
 
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                        </div>
-                    </div>
-                    <div id="time-slot" class="time-slot">
-                       <div class="time-row">
-                            <div class="match-time">
-                                <input type="time" value="18:30">
-                            </div>
-                        </div>
-                        <div class="matches-row">
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
                         </div>
                     </div>
-                    <div id="time-slot" class="time-slot">
-                      <div class="time-row">
-                            <div class="match-time">
-                                <input type="time" value="19:00">
-                            </div>
-                        </div>
-                        <div class="matches-row">
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="time-slot" class="time-slot">
-                        <div class="time-row">
-                            <div class="match-time">
-                                <input type="time" value="19:30">
-                            </div>
-                        </div>
-                        <div class="matches-row">
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                        </div>
-                    </div>
-                    <div id="time-slot" class="time-slot">
-                       <div class="time-row">
-                            <div class="match-time">
-                                <input type="time" value="20:00">
-                            </div>
-                        </div>
-                        <div class="matches-row">
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                        </div>
-                    </div>
-                    <div id="time-slot" class="time-slot">
-                       <div class="time-row">
-                            <div class="match-time">
-                                <input type="time" value="20:30">
-                            </div>
-                        </div>
-                        <div class="matches-row">
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                        </div>
-                    </div>
-                    <div id="time-slot" class="time-slot">
-                       <div class="time-row">
-                            <div class="match-time">
-                                <input type="time" value="21:00">
-                            </div>
-                        </div>
-                        <div class="matches-row">
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                        </div>
-                    </div>
-                    <div id="time-slot" class="time-slot">
-                       <div class="time-row">
-                            <div class="match-time">
-                                <input type="time" value="21:30">
-                            </div>
-                        </div>
-                        <div class="matches-row">
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                        </div>
-                    </div>
-                    <div id="time-slot" class="time-slot">
-                        <div class="time-row">
-                            <div class="match-time">
-                                <input type="time" value="22:00">
-                            </div>
-                        </div>
-                        <div class="matches-row">
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                            <div class="match-time-slot">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
-
             <div class="col-4">
                 <div id="matches" class="matches">
                     {% for match in matches %}
@@ -223,6 +54,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 
 

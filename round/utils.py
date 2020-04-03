@@ -1,3 +1,5 @@
+import json
+from collections import namedtuple
 from .models import PlayersInLadderRound, PlayerRanking
 from .models import Ladder
 from .models import LadderRound
@@ -467,7 +469,6 @@ def validate_and_create_ladder_round(ladder, start_date, end_date):
 
 
 def re_open_round(ladder_round):
-
     matches = Match.objects.filter(ladder_round=ladder_round)
     if matches:
         for match in matches:
@@ -475,3 +476,27 @@ def re_open_round(ladder_round):
     ladder_round.status = ladder_round.OPEN
     ladder_round.save()
     return True
+
+
+def date_for_day_of_the_year(day_of_the_year, year):
+    if isinstance(day_of_the_year, str):
+        day_of_the_year = int(day_of_the_year)
+    if isinstance(year, str):
+        year = int(year)
+
+    return datetime(year, 1, 1) + timedelta(days=day_of_the_year - 1)
+
+
+def save_scheduled_matches(ladder_round, scheduled_matches):
+    counter = 0
+    for each_day in scheduled_matches:
+        for match in each_day['matches']:
+            match_schedule = MatchSchedule(
+                day=date_for_day_of_the_year(each_day['day'], ladder_round.start_date.strftime('%Y')),
+                court=1,
+                time_slot=datetime.strptime(match['timeslot'], '%H:%M').time(),
+                match=Match.objects.get(id=match['match']),
+                ladder_round=ladder_round)
+            match_schedule.save()
+            counter += 1
+    return counter
