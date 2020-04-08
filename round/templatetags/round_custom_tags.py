@@ -34,3 +34,8 @@ def timeslot(start_time, counter, interval):
 @register.filter
 def date_for_day_of_year(day, year):
     return date_for_day_of_the_year(day, year)
+
+@register.simple_tag
+def grid_location(day, time_slot, court, number_of_courts, number_of_timeslots):
+    location = court + number_of_courts*(time_slot-1) + (number_of_timeslots*number_of_courts*(day-1))
+    return location

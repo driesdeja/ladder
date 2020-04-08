@@ -177,9 +177,11 @@ class MatchSchedule(models.Model):
     match = models.ForeignKey(Match, null=True, on_delete=models.CASCADE)
     ladder_round = models.ForeignKey(LadderRound, on_delete=models.CASCADE)
     status = models.IntegerField(choices=Status, default=OPEN)
+    time_grid_location = models.IntegerField(default=0)
 
     def __str__(self):
         return f'day: {self.day} - ' \
                f'court: {self.court}' \
                f'time_slot: {self.time_slot} : ' \
-               f' - Round start date: {self.ladder_round.start_date}'
+               f' - Round start date: {self.ladder_round.start_date}' \
+               f'time_grid_location: {self.time_grid_location}'

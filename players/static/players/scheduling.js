@@ -100,8 +100,9 @@ function saveMatches() {
                     console.log('input: ' + inputs[j].value);
                     let match = {
                         'timeslot': time.trim(),
-                        'match': inputs[j].value
-                    }
+                        'match': inputs[j].value,
+                        'court': k + 1
+                    };
                     matches.push(match);
                 }
             }
@@ -115,6 +116,6 @@ function saveMatches() {
 
     const scheduledMatches = document.getElementById('scheduled-matches');
     scheduledMatches.setAttribute('value', JSON.stringify(days_matches));
-    document.getElementById('match-schedule-form').submit();
+    //document.getElementById('match-schedule-form').submit();
     console.log(days_matches);
 }

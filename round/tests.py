@@ -151,6 +151,8 @@ class RoundUtilsTestCase(TestCase):
         match4.result = Match.PLAYER_2_WON
         match4.save()
 
+        #create the RoundMatchSchedule
+
         # populate the rounds with Matches
 
         match1 = Match.objects.create(player1=Player.objects.get(ranking=1), player2=Player.objects.get(ranking=2),
@@ -344,6 +346,22 @@ class RoundUtilsTestCase(TestCase):
 
     def test_save_scheduled_matches(self):
 
+        ladder_round = LadderRound.objects.all().first()
+        match_day = str(ladder_round.start_date.timetuple().tm_yday)
+        start_time = datetime.strptime('18:00', '%H:%M').time()
+        end_time = datetime.strptime('18:00', '%H:%M').time()
+        time_interval = 30
+        number_of_courts = 4
+        number_of_timeslots = 8
+        round_match_schedule = RoundMatchSchedule.objects.create(match_days=match_day,
+                                                                 number_of_courts=number_of_courts,
+                                                                 number_of_timeslots=number_of_timeslots,
+                                                                 start_time=start_time,
+                                                                 end_time=end_time,
+                                                                 time_interval=time_interval)
+        ladder_round.match_schedule = round_match_schedule
+        ladder_round.save()
+
         match1 = Match.objects.create(player1=Player.objects.get(ranking=1), player2=Player.objects.get(ranking=2),
                                       ladder_round=LadderRound.objects.all().first())
         match2 = Match.objects.create(player1=Player.objects.get(ranking=3), player2=Player.objects.get(ranking=4),
@@ -354,11 +372,20 @@ class RoundUtilsTestCase(TestCase):
                                       ladder_round=LadderRound.objects.all().first())
 
         scheduled_matches = [{'day': '86',
-                              'matches': [{'timeslot': '06:00', 'match': match1.id},
-                                          {'timeslot': '06:00', 'match': match2.id},
-                                          {'timeslot': '06:00', 'match': match3.id},
-                                          {'timeslot': '06:00', 'match': match4.id}]}
+                              'matches': [{'timeslot': '18:00', 'match': match1.id, 'court': 1},
+                                          {'timeslot': '18:00', 'match': match2.id, 'court': 2},
+                                          {'timeslot': '18:00', 'match': match3.id, 'court': 3},
+                                          {'timeslot': '18:00', 'match': match4.id, 'court': 4}]}
                              ]
         number_of_matches_saved = save_scheduled_matches(LadderRound.objects.all().first(), scheduled_matches)
         print(f'Number of matches saved: {number_of_matches_saved}')
-        self.assertTrue(number_of_matches_saved > 0)
+        matches = MatchSchedule.objects.filter(ladder_round=ladder_round)
+        for match in matches:
+            print(match)
+        self.assertTrue(number_of_matches_saved == 4)
+        # test if the delete works
+        number_of_matches_saved = save_scheduled_matches(LadderRound.objects.all().first(), scheduled_matches)
+        saved_scheduled_matches = MatchSchedule.objects.filter(ladder_round=LadderRound.objects.all().first())
+        self.assertTrue(len(saved_scheduled_matches) == 4)
+
+

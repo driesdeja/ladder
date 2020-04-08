@@ -1,3 +1,5 @@
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
 import json
@@ -20,7 +22,8 @@ from players.models import Player
 from .utils import validate_match_results, get_players_in_round, get_players_not_in_round, setup_matches_for_draw, \
     add_player_to_round, compare_and_update_player_with_playerranking, get_full_ladder_details, \
     remove_player_from_round, is_int, add_intervals_to_start_time, get_number_of_timeslots, \
-    create_match_schedule_with_round_match_schedule, validate_and_create_ladder_round, re_open_round
+    create_match_schedule_with_round_match_schedule, validate_and_create_ladder_round, re_open_round, \
+    save_scheduled_matches, save_scheduled_match
 from round.utils import calculate_change_in_ranking, update_ladder_ranking, matches_player_played_in, date_range
 from players.views import list_players
 
@@ -493,7 +496,11 @@ def player_profile(request, player_id):
 def schedule_matches(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
     matches = Match.objects.filter(ladder_round=ladder_round)
-
+    non_scheduled_matches = []
+    for each_match in matches:
+        if not MatchSchedule.objects.filter(match=each_match):
+            non_scheduled_matches.append(each_match)
+    saved_matches_schedule = MatchSchedule.objects.filter(ladder_round=ladder_round)
     schedule = ladder_round.match_schedule
     if schedule:
         pass
@@ -503,21 +510,15 @@ def schedule_matches(request, round_id):
     if request.POST:
         scheduled_matches = json.loads(request.POST.get('scheduled-matches'))
         # todo Validate that match_day is between the start and end dates of the ladder_round
-        if schedule_matches:
-            for scheduled_match in scheduled_matches:
-                pass
-                # match_schedule = MatchSchedule.objects.create()
+        save_scheduled_matches(ladder_round, scheduled_matches)
 
         print(scheduled_matches)
 
-    else:
-        match_day = datetime.today()
-
     context = {
         'ladder_round': ladder_round,
-        'matches': matches,
+        'matches': non_scheduled_matches,
         'schedule': schedule,
-        'match_day': match_day
+        'saved_matches_schedule': saved_matches_schedule
     }
     return render(request, 'round/schedule_matches.html', context)
 
@@ -627,5 +628,38 @@ def create_ladder_round(request, ladder_id):
         'ladder': ladder,
         'ladder_rounds': ladder_rounds,
         'last_round': last_round
+
     }
     return render(request, 'round/create-ladder-round.html', context)
+
+
+def save_scheduled_match_view(request, round_id):
+    response_data = {}
+    ladder_round = LadderRound.objects.get(id=round_id)
+    if request.POST:
+        if request.POST.get('save'):
+            match_id = request.POST.get("match_id")
+            match_time = request.POST.get("match_time")
+            match_day = request.POST.get("match_day")
+            court = request.POST.get("court")
+            try:
+                scheduled_match = MatchSchedule.objects.get(match_id=match_id)
+                scheduled_match.delete()
+            except ObjectDoesNotExist:
+                pass
+            finally:
+                scheduled_match = save_scheduled_match(ladder_round, match_id, match_day, court, match_time)
+            response_data['match_schedule_id'] = scheduled_match.id
+            response_data['match_id'] = match_id
+            return JsonResponse(response_data)
+        elif request.POST.get('remove'):
+            match_id = request.POST.get("match_id")
+            match = Match.objects.get(id=match_id)
+            match_schedule = MatchSchedule.objects.get(match=match)
+            print(match_schedule)
+            if match_schedule:
+                match_schedule.delete()
+            response_data['match_removed'] = match_schedule.id
+            response_data['match_id'] = match_id
+            return JsonResponse(response_data)
+    return render(request, 'round/create-ladder-round.html')

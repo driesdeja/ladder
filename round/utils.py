@@ -1,10 +1,13 @@
 import json
 from collections import namedtuple
-from .models import PlayersInLadderRound, PlayerRanking
-from .models import Ladder
-from .models import LadderRound
-from .models import Match
-from .models import MatchSchedule
+from .models import PlayersInLadderRound, \
+    PlayerRanking, \
+    Ladder, \
+    LadderRound, \
+    Match, \
+    MatchSchedule, \
+    RoundMatchSchedule
+
 from players.models import Player
 from datetime import datetime, timedelta, date
 
@@ -489,14 +492,39 @@ def date_for_day_of_the_year(day_of_the_year, year):
 
 def save_scheduled_matches(ladder_round, scheduled_matches):
     counter = 0
+    # each save is a new schedule so it is important to delete all previous scheduled matches for the ladder_round
+    historic_matches = MatchSchedule.objects.filter(ladder_round=ladder_round)
+    if historic_matches:
+        for historic_match in historic_matches:
+            historic_match.delete()
     for each_day in scheduled_matches:
         for match in each_day['matches']:
-            match_schedule = MatchSchedule(
-                day=date_for_day_of_the_year(each_day['day'], ladder_round.start_date.strftime('%Y')),
-                court=1,
-                time_slot=datetime.strptime(match['timeslot'], '%H:%M').time(),
-                match=Match.objects.get(id=match['match']),
-                ladder_round=ladder_round)
-            match_schedule.save()
+            match_schedule = save_scheduled_match(ladder_round, match['match'], each_day['day'], match['court'], match['timeslot'])
             counter += 1
     return counter
+
+
+def save_scheduled_match(ladder_round, match_id, day, court, timeslot):
+    round_match_schedule = RoundMatchSchedule.objects.get(ladderround=ladder_round)
+    days = len(round_match_schedule.match_days.split(','))
+    start_time = round_match_schedule.start_time
+    time_slot = datetime.strptime(timeslot, '%H:%M').time()
+    time_slot_in_min = time_slot.hour*60 + time_slot.minute
+    start_time_in_min = start_time.hour*60 + start_time.minute
+    time_difference_in_min = time_slot_in_min - start_time_in_min
+
+    print(f'Time slot: {time_slot_in_min} - start_time: {start_time_in_min} = {time_difference_in_min}')
+    row = (time_difference_in_min)/round_match_schedule.time_interval
+    column = court
+    print(f'column: {column} + number_of_courts: {round_match_schedule.number_of_courts} * (row-1) ({row} - 1)')
+    grid_location = int(column) + int(round_match_schedule.number_of_courts*(row))
+    print(f'Gridlocation: {grid_location}')
+    match_schedule = MatchSchedule(
+        day=date_for_day_of_the_year(day, ladder_round.start_date.strftime('%Y')),
+        court=court,
+        time_slot=datetime.strptime(timeslot, '%H:%M').time(),
+        match=Match.objects.get(id=match_id),
+        ladder_round=ladder_round,
+        time_grid_location=grid_location)
+    match_schedule.save()
+    return match_schedule
