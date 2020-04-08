@@ -123,6 +123,7 @@ def round_detail(request, round_id):
     else:
         matches = None
     if request.POST.get('copy_players'):
+        # todo: Move this to the business layer
         previous_round_id = request.POST.get('previous_round')
         previous_round = LadderRound.objects.get(id=previous_round_id)
         new_players = get_players_in_round(previous_round)
@@ -138,7 +139,6 @@ def round_detail(request, round_id):
         return redirect(round_detail, round_id)
     if request.POST.get('enter_round'):
         player_id = request.POST.get('player_id')
-        player = Player.objects.get(id=player_id)
         add_player_to_round(round_id, player_id)
         return redirect(round_detail, round_id)
     if request.POST.get('capture-match-results'):
