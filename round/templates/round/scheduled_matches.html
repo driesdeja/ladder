@@ -1,0 +1,47 @@
+{% load round_custom_tags %}
+<div class="players-in-round">
+    {% for day in round_match_schedule.match_days|as_list:',' %}
+        <div class="match-day">
+            <h2>{{ day|date_for_day_of_year:2020|date:'l j F, Y' }}</h2>
+
+            <div id="time-slots">
+                {% for time in round_match_schedule.number_of_timeslots|times %}
+                    <div id="time-slot" class="time-slot">
+                        <div class="time-row">
+                            <div class="match-time">
+                                {% timeslot round_match_schedule.start_time forloop.counter0 round_match_schedule.time_interval as times_slot_value %}
+                                {{ times_slot_value|date:'H:i' }}
+                            </div>
+                        </div>
+                        <div class="matches-row">
+                            {% for court in round_match_schedule.number_of_courts|times %}
+                                <div class="match-time-slot">
+                                    {% for each_scheduled_match in scheduled_matches %}
+                                        {% grid_location forloop.parentloop.parentloop.parentloop.counter forloop.parentloop.parentloop.counter forloop.parentloop.counter round_match_schedule.number_of_courts round_match_schedule.number_of_timeslots as grid_location %}
+                                        {% if each_scheduled_match.time_grid_location == grid_location %}
+                                            <div id="schedulable-match-{{ each_scheduled_match.match.id }}"
+                                                 class="schedulable-match" draggable="true">
+                                                <span class="player">{{ each_scheduled_match.match.player1.first_name }} {{ each_scheduled_match.match.player1.last_name }}</span><span
+                                                    class="vs"> vs. </span><span
+                                                    class="player">{{ each_scheduled_match.match.player2.first_name }} {{ each_scheduled_match.match.player2.last_name }}</span>
+                                                <input type="hidden" id="match-id" name="match-id"
+                                                       value="{{ each_scheduled_match.match.id }}">
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <input type="hidden" name="match-day" class="match-day-date"
+                                           value="{{ day }}">
+                                    <input type="hidden" name="time"
+                                           value="{{ times_slot_value|date:'H:i' }}">
+                                    <input type="hidden" name="court" value="{{ forloop.counter }}">
+                                    {% csrf_token %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+    
+</div>

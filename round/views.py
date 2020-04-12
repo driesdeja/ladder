@@ -118,10 +118,10 @@ def ladder_detail(request, ladder_id):
 def round_detail(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
     players = get_players_in_round(ladder_round)
-    if ladder_round.status == ladder_round.CLOSED:
-        matches = Match.objects.filter(ladder_round=ladder_round)
-    else:
-        matches = None
+    scheduled_matches = MatchSchedule.objects.filter(ladder_round=ladder_round).order_by('time_grid_location')
+    round_match_schedule = ladder_round.match_schedule
+    matches = Match.objects.filter(ladder_round=ladder_round)
+
     if request.POST.get('copy_players'):
         # todo: Move this to the business layer
         previous_round_id = request.POST.get('previous_round')
@@ -197,7 +197,9 @@ def round_detail(request, round_id):
         'ladder_rounds': ladder_rounds,
         'players': players,
         'previous_rounds': previous_rounds,
-        'matches': matches
+        'matches': matches,
+        'round_match_schedule': round_match_schedule,
+        'scheduled_matches': scheduled_matches
     }
     return render(request, 'round/round-detail.html', context)
 
@@ -376,7 +378,6 @@ def capture_results(request, round_id):
     return render(request, 'round/capture-results.html', context)
 
 
-@permission_required('round.ladder.can_administrate_the_ladder')
 def view_round_results(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
     ladder = ladder_round.ladder

@@ -1,0 +1,58 @@
+<div class="players-in-round">
+    {% if user.is_authenticated %}
+        <div class="info-header">
+            {% if user.profile.player %}
+                {% if user.profile.player in players %}
+                    <p>You are scheduled to play in this round.</p>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="player_id"
+                               value="{{ user.profile.player.id }}">
+                        <input type="submit" class="action-button" name="leave_round"
+                               value="Leave Round">
+                    </form>
+                {% else %}
+                    <p>You have not entered this round.</p>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="player_id"
+                               value="{{ user.profile.player.id }}">
+                        <input type="submit" class="action-button" name="enter_round"
+                               value="Enter Round">
+                    </form>
+                {% endif %}
+            {% else %}
+                <p>Players currently scheduled to play in this round</p>
+            {% endif %}
+        </div>
+    {% endif %}
+    <table class="table table-link">
+        <tr>
+            <th>Ranking (In Round)</th>
+            <th>Name</th>
+            <th>Contact Number</th>
+        </tr>
+        {% for player in players %}
+            {% if user.profile.player == player %}
+                <tr class="tr-highlight">
+                    {% else %}
+                <tr>
+            {% endif %}
+        <td>
+            {{ forloop.counter }}
+        </td>
+        <td>
+            <a href="{% url 'player-profile' player.id %}">{{ player.first_name }} {{ player.last_name }}</a>
+        </td>
+        <td>
+            {% if user.is_authenticated %}
+                {{ player.contact_number }}
+            {% else %}
+                ###########
+            {% endif %}
+        </td>
+        </tr>
+
+        {% endfor %}
+    </table>
+</div>
