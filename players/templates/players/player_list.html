@@ -2,47 +2,50 @@
 {% block content %}
     {% if user.is_authenticated %}
         {% if perms.players.add_player %}
-            <a href="{% url 'create-player' %}">Add Player</a>
-            <a href="{% url 'reset-rankings' %}">Reset Ranking</a>
+            {% include 'players/player_nav.html' %}
         {% endif %}
     {% endif %}
-    <table class="table text-left table-link">
-        <thead>
-        <tr>
-            <th scope="col">Rank</th>
-            <th scope="col">First</th>
-            <th scope="col">Last</th>
-            <th scope="col">Contact Number</th>
-            {% if perms.players.add_player %}
-                <th scope="col">Edit</th>
-            {% endif %}
-        </tr>
-        </thead>
-        <tbody>
-        {% for player in players %}
-            {% if user.profile.player == player %}
-                <tr id="{{ player.id }}" class="tr-highlight">
-                    {% else %}
-                <tr id="{{ player.id }}">
-            {% endif %}
-                <td>{{ player.ranking }}</td>
-                <td><a href="{% url 'player-profile' player.id %}">{{ player.first_name }}</a></td>
-                <td><a href="{% url 'player-profile' player.id %}">{{ player.last_name }}</a></td>
-                <td>
-                    {% if user.is_authenticated %}
-                        {{ player.contact_number }}
-                    {% else %}
-                        ###########
-                    {% endif %}
-                </td>
+    <div class="content-wrapper">
+
+
+        <table class="table text-left table-link">
+            <thead>
+            <tr>
+                <th scope="col">Rank</th>
+                <th scope="col">First</th>
+                <th scope="col">Last</th>
+                <th scope="col">Contact Number</th>
                 {% if perms.players.add_player %}
-                    <td>
-                        <a href="{% url 'edit-player' player.id %}">Edit</a>
-                    </td>
+                    <th scope="col">Edit</th>
                 {% endif %}
             </tr>
-        {% endfor %}
+            </thead>
+            <tbody>
+            {% for player in players %}
+                {% if user.profile.player == player %}
+                    <tr id="{{ player.id }}" class="tr-highlight">
+                        {% else %}
+                    <tr id="{{ player.id }}">
+                {% endif %}
+            <td>{{ player.ranking }}</td>
+            <td><a href="{% url 'player-profile' player.id %}">{{ player.first_name }}</a></td>
+            <td><a href="{% url 'player-profile' player.id %}">{{ player.last_name }}</a></td>
+            <td>
+                {% if user.is_authenticated %}
+                    {{ player.contact_number }}
+                {% else %}
+                    ###########
+                {% endif %}
+            </td>
+            {% if perms.players.add_player %}
+                <td>
+                    <a href="{% url 'edit-player' player.id %}">Edit</a>
+                </td>
+            {% endif %}
+            </tr>
+            {% endfor %}
 
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 {% endblock content %}

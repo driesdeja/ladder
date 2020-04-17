@@ -74,6 +74,11 @@
     background-color: #ffffff;
     border-radius: 25px;
     padding-top: 10px;
+
+}
+
+.content-page {
+
 }
 
 body {
@@ -119,6 +124,15 @@ footer {
 
 .nav-link:hover {
     color: black;
+}
+
+.content-wrapper {
+    margin: 5px 0px;
+    padding: 5px 0px;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: lightgrey;
+    border-width: thin;
 }
 
 .panel {
@@ -526,4 +540,30 @@ footer {
 .round-progress-bar {
     border-radius: 5px;
     background-color: #808080;
+}
+
+.player-nav {
+
+    display: flex;
+    padding: 5px 5px 5px 15px;
+    border-radius: 5px;
+    background-color: var(--color-primary-1);
+    line-height: 45px;
+    flex-flow: row;
+}
+
+.player-nav a {
+    padding: 0 5px;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    color: var(--color-primary-4);
+}
+
+.player-nav a:hover {
+    color: #FFFFFF;
+}
+
+.player-import {
+    padding-left: 30px;
 }

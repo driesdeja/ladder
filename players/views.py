@@ -1,9 +1,13 @@
+from io import TextIOWrapper
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib import messages
 from .models import Player
 from .forms import PlayerForm
 from round.utils import update_ladder_ranking
+from django.http import HttpResponse
+from .utils import get_file_of_players, extract_players_from_file, save_players
 
 
 def list_players(request):
@@ -64,3 +68,38 @@ def reset_rankings(request):
         player.save()
 
     return redirect(list_players)
+
+
+@permission_required('players.add_player')
+def import_players(request):
+    players = []
+    if request.POST:
+        if request.POST.get('import'):
+            players_file = TextIOWrapper(request.FILES['file'])
+            players = extract_players_from_file(players_file)
+        elif request.POST.get('cancel'):
+            messages.warning(request, f'Player import cancelled!')
+            players = None
+            redirect(import_players)
+        elif request.POST.get('save'):
+            players = request.POST.get('players')
+
+            records_created = save_players(players)
+            messages.info(request, f'Successfully imported {records_created} players!')
+            return redirect(list_players)
+    context = {
+        'players': players
+    }
+
+    return render(request, 'players/import_players.html', context)
+
+
+@permission_required('players.add_player')
+def export_players(request):
+    filename = 'players.csv'
+    file_to_download = get_file_of_players()
+    with open(file_to_download) as file_to_download:
+        response = HttpResponse(file_to_download, content_type='application/txt')
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+    return response
+

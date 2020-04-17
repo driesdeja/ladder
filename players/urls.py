@@ -3,8 +3,10 @@ from . import views
 
 urlpatterns = [
     path('player/<int:player_id>', views.edit_player, name='edit-player'),
-    path('create/', views.create_player, name='create-player'),
-    path('reset-ranking/', views.reset_rankings, name='reset-rankings'),
+    path('administration/create/', views.create_player, name='create-player'),
+    path('administration/reset-ranking/', views.reset_rankings, name='reset-rankings'),
+    path('administration/import-players', views.import_players, name='import-players'),
+    path('administration/export-players', views.export_players, name="export-players"),
     path('', views.list_players, name='list-players'),
 
 ]
