@@ -12,9 +12,7 @@
 </head>
 <body>
 <div class="container main">
-    <header>
-        <img src="{% static 'players/logo.png' %}" width="180" height="90" alt="">
-    </header>
+    {% include 'players/header.html' %}
     <div id="navigation-section">
         {% include 'players/top_navigation.html' %}
     </div>
@@ -23,10 +21,7 @@
         {% block content %}
         {% endblock content %}
     </div>
-
-    <footer class="container-fluid text-center">
-        <p>Footer Text</p>
-    </footer>
+    {% include 'players/footer.html' %}
 </div>
 <script src="{% static 'jquery/jquery-3.4.1.min.js' %}" type="text/javascript"></script>
 <script src="{% static 'jquery/jquery-ui.min.js' %}" type="text/javascript"></script>
