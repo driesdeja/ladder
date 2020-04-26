@@ -7,7 +7,11 @@ from .models import Player
 from .forms import PlayerForm
 from round.utils import update_ladder_ranking
 from django.http import HttpResponse
-from .utils import get_file_of_players, extract_players_from_file, save_players
+from .utils import get_file_of_players, \
+    extract_players_from_file, \
+    save_players, \
+    get_pdf_file
+
 
 
 def list_players(request):
@@ -103,3 +107,11 @@ def export_players(request):
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
     return response
 
+
+def download_players(request):
+
+    filename = 'player_list.pdf'
+    pdf_file = get_pdf_file('player_list')
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=%s' % filename
+    return response
