@@ -664,3 +664,11 @@ def save_scheduled_match_view(request, round_id):
             response_data['match_id'] = match_id
             return JsonResponse(response_data)
     return render(request, 'round/create-ladder-round.html')
+
+
+def ladder_setup_wizard(request):
+    players = Player.objects.all().order_by('ranking')
+    context = {
+        'players': players
+    }
+    return render(request, 'round/ladder_setup_wizard.html', context)
