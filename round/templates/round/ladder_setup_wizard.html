@@ -1,32 +1,53 @@
 {% extends 'players/base.html' %}
 {% block content %}
-    <form>
+    <form method="POST">
+        {% csrf_token %}
         <div class="container">
             <div class="panel panel-default">
                 <div class="row">
-                    <div class="coL">
+                    <div class="col">
                         <div class="panel-heading">Ladder Setup Wizard</div>
                         <div class="panel-body">Select the Ladder elements to create a new Ladder</div>
                     </div>
+                    <div class="col">
+                        <input type="submit" id="submit_wizard" value="Create Ladder">
+                    </div>
                 </div>
             </div>
-            <div class="content-wrapper">
-                <p>Setup a new ladder and the ladder rounds:</p>
-                <label for="ladder_name">Ladder name:</label>
-                <input type="text" name="ladder_name">
-                <label for="ladder_start_date">Start Date</label>
-                <input type="date" name="ladder_start_date">
-                <label for="ladder_end_date">End Date</label>
-                <input type="date" name="ladder_end_date">
 
+            <div class="content-wrapper" id="ladder_setup">
+                <div class="col-12">
+                    <p>Setup a new ladder and the ladder rounds:</p>
+                    <label for="ladder_name">Ladder name:</label>
+                    <input type="text" name="ladder_name" id="ladder_name">
+                    <label for="ladder_start_date">Start Date</label>
+                    <input type="date" id="ladder_start_date" name="ladder_start_date">
+                    <label for="ladder_end_date">End Date</label>
+                    <input type="date" name="ladder_end_date" id="ladder_end_date">
+                    <label for="number_of_rounds">Number of rounds</label>
+                    <input type="number" name="number_of_rounds" id="number_of_rounds" size="2">
+                </div>
+                <div class="ladder-validation">
+                    <ul>
+                        <li id="ladder_name_req">Ladder Name is required.</li>
+                        <li id="ladder_start_date_req">Ladder Start Date is required.</li>
+                        <li id="ladder_end_date_req">Ladder End Date OR number of rounds is required if you want to setup multiple rounds.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="content-wrapper">
+                <p>Select Calculation Method</p>
+                <input type="radio" name="calculation" value="franklin" checked>
+                <label for="calculation">Franklin</label>
             </div>
             <div class="content-wrapper">
                 <p>Setup the Ladder Rounds</p>
                 <label for="round_start_date">When does the first round start?</label>
-                <input type="date" name="round_start_date">
+                <input type="date" id="round_start_date" name="round_start_date">
 
                 <label for="duration_of_round">What is the duration of a round?</label>
-                <select name="duration_of_round">
+                <select id="duration_of_round" name="duration_of_round">
                     <option value="once">Once Only (Single Round Ladder)</option>
                     <option value="weekly" selected>Weekly</option>
                     <option value="fortnightly">Fortnightly</option>
@@ -35,38 +56,34 @@
             </div>
             <div class="content-wrapper">
                 Do you want to setup a schedule for the rounds?
-                <input type="radio" id="schedule_yes" name="schedule_select" value="yes" checked>
+                <input type="radio" id="schedule_yes" name="schedule_select" value="setup_schedule">
                 <label for="schedule_yes">Yes</label>
-                <input type="radio" id="schedule_no" name="schedule_select" value="no">
+                <input type="radio" id="schedule_no" name="schedule_select" value="no_schedule" checked>
                 <label for="schedule_no">No</label>
 
 
                 <div class="row" id="setup_schedule">
                     <div class="col-4">
                         <div class="select-match-day">Select Match Day/s
-                            <ul>
-                                {% for day in days %}
-                                    <li><input type="checkbox" name="match-day[]" value="{{ day|date:"z" }}"><label
-                                            for="matchday[]">{{ day|date:"l, j M" }}</label></li>
+                            <ul id="days_list">
 
-                                {% endfor %}
                             </ul>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="courts">
-                            <label for="number-of-courts">How many courts are you going to use?</label>
-                            <input name="number-of-courts" type="number" min="1" max="4" value="4">
+                            <label for="number_of_courts">How many courts are you going to use?</label>
+                            <input name="number_of_courts" type="number" min="1" max="4" value="4">
                         </div>
                         <div class="time-schedule">
-                            <label for="start-time">What is the start time of the matches?</label>
-                            <input type="time" value="18:00" name="start-time">
-                            <label for="end-time">What is the latest the games should start?</label>
-                            <input type="time" value="22:00" name="end-time">
-                            <label for="number-of-games">How many games will be played per day?</label>
-                            <input type="text" name="number-of-games" placeholder="Optional">
-                            <label for="time-interval">How much time allowed for a game?</label>
-                            <select name="time-interval">
+                            <label for="start_time">What is the start time of the matches?</label>
+                            <input type="time" value="18:00" name="start_time">
+                            <label for="end_time">What is the latest the games should start?</label>
+                            <input type="time" value="22:00" name="end_time">
+                            <label for="number_of_games">How many games will be played per day?</label>
+                            <input type="text" name="number_of_games" placeholder="Optional">
+                            <label for="time_interval">How much time allowed for a game?</label>
+                            <select name="time_interval">
                                 <option value="30" selected>30 min</option>
                                 <option value="45">45 min</option>
                                 <option value="60">60 min</option>
@@ -79,9 +96,9 @@
             </div>
             <div class="content-wrapper">
                 Select players for the ladder:
-                <input type="radio" id="now" name="select_players" value="now" checked>
+                <input type="radio" id="now" name="select_players" value="now">
                 <label for="now">Now</label>
-                <input type="radio" id="later" name="select_players" value="later">
+                <input type="radio" id="later" name="select_players" value="later" checked>
                 <label for="later">Later</label>
                 <div class="players-in-round" id="select_players">
 
@@ -127,6 +144,63 @@
             }
         }
 
+
+        $("#setup_schedule").hide()
+        $("#select_players").hide()
+        $("#ladder_name").focus()
+        $("#submit_wizard").attr("disabled", true)
+
+        $("#ladder_name").change(function () {
+            let ladder_name = $("#ladder_name").val();
+            if (ladder_name.length > 0 ){
+                $("#ladder_name_req").hide();
+                validateLadderRequirements();
+            } else {
+                $("#ladder_name_req").show();
+                $("#submit_wizard").attr("disabled", true);
+            }
+
+        })
+
+        $("#ladder_start_date").change(function () {
+            let ladder_start_date = $("#ladder_start_date").val();
+            if (ladder_start_date.length > 0){
+                $("#ladder_start_date_req").hide();
+                validateLadderRequirements();
+            } else {
+                $("#ladder_start_date_req").show();
+                $("#submit_wizard").attr("disabled", true);
+            }
+        })
+
+        $("#ladder_end_date").change(validateLadderEndOrRounds);
+
+        $("#number_of_rounds").change(validateLadderEndOrRounds)
+
+
+        function validateLadderEndOrRounds(){
+            let ladder_end_date = $("#ladder_end_date").val();
+            let number_if_rounds = $("#number_of_rounds").val();
+            if (ladder_end_date.length > 0 || number_if_rounds > 0){
+                $("#ladder_end_date_req").hide();
+                validateLadderRequirements();
+            } else {
+                $("#ladder_end_date_req").show();
+            }
+        }
+
+        function validateLadderRequirements() {
+            //minimum requirements is a name, start_date
+            console.log("validation ladder requirements")
+            let ladder_name = $("#ladder_name").val();
+            let start_date = $("#ladder_start_date").val();
+            if (ladder_name.length > 0 && start_date.length > 0){
+                $("#submit_wizard").attr("disabled", false)
+            } else {
+                $("#submit_wizard").attr("disabled", true)
+            }
+        }
+
         $("#later").click(function () {
             $("#select_players").hide()
         })
@@ -138,9 +212,69 @@
             $("#setup_schedule").hide()
         })
         $("#schedule_yes").click(function () {
-            $("#setup_schedule").show()
+            $("#setup_schedule").show();
+            setupSchedule()
+        })
+        <!-- Select Ladder Start Date -->
+
+        $("#ladder_start_date").focusout(function () {
+            $("#round_start_date").val($("#ladder_start_date").val())
         })
 
+        <!-- setup schedule -->
 
+        $("#duration_of_round").change(setupSchedule);
+
+
+
+
+        function setupSchedule() {
+            let first_day = $("#round_start_date").val()
+            let duration_of_round = $("#duration_of_round").val()
+            let weekday = new Array(7);
+            weekday[0] = "Sunday";
+            weekday[1] = "Monday";
+            weekday[2] = "Tuesday";
+            weekday[3] = "Wednesday";
+            weekday[4] = "Thursday";
+            weekday[5] = "Friday";
+            weekday[6] = "Saturday";
+
+            <!-- Validate the Ladder setup -->
+
+
+            if (first_day == "") {
+                alert("You have to select the first day of the round before setting up the schedule!")
+            } else {
+                switch (duration_of_round) {
+                    case "once":
+                        $("#days_list").empty()
+                        let day_of_week = new Date($("#ladder_start_date").val()).getDay()
+                        $("#days_list").append("<li>" + weekday[day_of_week] + "</li>");
+                        break;
+                    case "weekly":
+                        $("#days_list").empty();
+                        console.log("weekly: " + weekday.length);
+                        for (let i = 0; i < weekday.length; i++) {
+                            $("#days_list").append("<li><input type=checkbox name=\"match_day[]\" value=\"" + weekday[i] + "\">" + weekday[i] + "</li>");
+                        }
+
+                        break;
+                    case "fortnightly":
+                        $("#days_list").empty()
+                        console.log("fortnightly: " + weekday.length);
+                        for (let i = 0; i < weekday.length; i++) {
+                            $("#days_list").append("<li><input type=checkbox name=\"match-day[]\" value=\"" + weekday[i] + "\">" + weekday[i] + "</li>");
+                        }
+                        break;
+                    case "monthly":
+                        $("#days_list").empty()
+
+
+                        break;
+                }
+            }
+
+        }
     </script>
 {% endblock javascript %}

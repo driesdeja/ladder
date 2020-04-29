@@ -667,6 +667,37 @@ def save_scheduled_match_view(request, round_id):
 
 
 def ladder_setup_wizard(request):
+    if request.POST:
+        # Ladder details
+        ladder_name = request.POST.get('ladder_name')
+        ladder_start_date = request.POST.get('ladder_start_date')
+        ladder_end_date = request.POST.get('ladder_end_date')
+        number_of_rounds = request.POST.get('number_of_rounds')
+
+        # Calculation Engine
+        calculation_method = request.POST.get('calculation')
+
+        # Rounds details
+        first_round_start_date = request.POST.get('round_start_date')
+        duration_of_round = request.POST.get('duration_of_round')
+
+        # Round schedule setup
+        set_up_round = request.POST.get('schedule_select')
+
+        if set_up_round == 'setup_schedule':
+            match_days = request.POST.getlist('match_day[]')
+            number_of_courts = request.POST.get('number_of_courts')
+            start_time = request.POST.get('start_time')
+            end_time = request.POST.get('end_time')
+            number_of_games = request.POST.get('number_of_games')
+            time_interval = request.POST.get('time_interval')
+
+        select_players = request.POST.get('select_players')
+        if select_players == 'now':
+            players_for_round = request.POST.getlist('add_to_round[]')
+
+
+
     players = Player.objects.all().order_by('ranking')
     context = {
         'players': players
