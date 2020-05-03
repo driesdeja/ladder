@@ -16,14 +16,15 @@ from .models import MatchResult
 from .models import PlayerRanking
 from .models import MatchSchedule
 from .models import RoundMatchSchedule
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from .forms import LadderForm, LadderRoundForm, MatchForm, LadderStatusForm
 from players.models import Player
 from .utils import validate_match_results, get_players_in_round, get_players_not_in_round, setup_matches_for_draw, \
     add_player_to_round, compare_and_update_player_with_playerranking, get_full_ladder_details, \
     remove_player_from_round, is_int, add_intervals_to_start_time, get_number_of_timeslots, \
     create_match_schedule_with_round_match_schedule, validate_and_create_ladder_round, re_open_round, \
-    save_scheduled_matches, save_scheduled_match
+    save_scheduled_matches, save_scheduled_match, validate_and_create_ladder_rounds, generate_round_match_schedule,\
+    validate_and_create_ladder
 from round.utils import calculate_change_in_ranking, update_ladder_ranking, matches_player_played_in, date_range
 from players.views import list_players
 
@@ -535,33 +536,20 @@ def setup_scheduling_for_round(request, round_id):
     days = date_range(start_date, end_date)
     if request.POST:
         if request.POST.get('generate-match-schedule'):
-            match_days = ','.join(request.POST.getlist('match-day[]'))
+            match_days = request.POST.getlist('match-day[]')
             number_of_courts = int(request.POST.get('number-of-courts'))
             start_time = datetime.strptime(request.POST.get('start-time'), '%H:%M').time()
             time_interval = request.POST.get('time-interval')
             number_of_games = request.POST.get('number-of-games')
+            end_time = datetime.strptime(request.POST.get('end-time'), '%H:%M').time()
 
-            if is_int(number_of_games):
-                number_of_games = int(number_of_games)
-            else:
-                number_of_games = 0
+            round_match_schedule = generate_round_match_schedule(match_days,
+                                                                 number_of_courts,
+                                                                 start_time,
+                                                                 end_time,
+                                                                 time_interval,
+                                                                 number_of_games)
 
-            if number_of_games > 0:
-                number_of_time_slots = int(float(number_of_games) / float(number_of_courts) + 1)
-
-                end_time = add_intervals_to_start_time(start_time, time_interval, int(number_of_time_slots))
-
-                print(f'end time: {end_time.strftime("%H:%M")}')
-            else:
-                end_time = datetime.strptime(request.POST.get('end-time'), '%H:%M').time()
-            number_of_timeslots = get_number_of_timeslots(start_time, end_time, time_interval)
-            round_match_schedule = RoundMatchSchedule.objects.create(match_days=match_days,
-                                                                     number_of_courts=number_of_courts,
-                                                                     start_time=start_time,
-                                                                     end_time=end_time,
-                                                                     number_of_timeslots=number_of_timeslots,
-                                                                     time_interval=int(time_interval))
-            round_match_schedule.save()
             ladder_round.match_schedule = round_match_schedule
             ladder_round.save()
             create_match_schedule_with_round_match_schedule(ladder_round, round_match_schedule)
@@ -674,29 +662,61 @@ def ladder_setup_wizard(request):
         ladder_end_date = request.POST.get('ladder_end_date')
         number_of_rounds = request.POST.get('number_of_rounds')
 
+        try:
+            ladder = validate_and_create_ladder(ladder_name, ladder_start_date, ladder_end_date)
+        except ValueError as error:
+            messages.error(request, f'The ladder is invalid: {error}')
+            return redirect(ladder_setup_wizard)
+
+
         # Calculation Engine
         calculation_method = request.POST.get('calculation')
+        # todo: Implement the calculation selection.  Only one is currently implemented.
 
         # Rounds details
-        first_round_start_date = request.POST.get('round_start_date')
+
+        if request.POST.get('round_start_date'):
+            first_round_start_date = datetime.strptime(request.POST.get('round_start_date'), '%Y-%m-%d').date()
+        else:
+            first_round_start_date = ladder.start_date
         duration_of_round = request.POST.get('duration_of_round')
 
-        # Round schedule setup
-        set_up_round = request.POST.get('schedule_select')
+        if number_of_rounds:
+            number_of_rounds = int(number_of_rounds)
+        # create the rounds setting up the start and end dates
 
-        if set_up_round == 'setup_schedule':
+        try:
+            ladder_rounds = validate_and_create_ladder_rounds(ladder, number_of_rounds, first_round_start_date, duration_of_round)
+        except ValueError as error:
+            messages.error(f'Ladder rounds are invalid: {error}')
+            return redirect(ladder_setup_wizard)
+        # Round schedule setup
+        set_up_schedule = request.POST.get('schedule_select')
+
+        if set_up_schedule == 'setup_schedule':
             match_days = request.POST.getlist('match_day[]')
             number_of_courts = request.POST.get('number_of_courts')
             start_time = request.POST.get('start_time')
             end_time = request.POST.get('end_time')
-            number_of_games = request.POST.get('number_of_games')
             time_interval = request.POST.get('time_interval')
+            number_of_games = request.POST.get('number_of_games')
+
+            round_match_schedule = generate_round_match_schedule(match_days,
+                                                                 number_of_courts,
+                                                                 start_time,
+                                                                 end_time,
+                                                                 time_interval,
+                                                                 number_of_games)
+            for each_round in ladder_rounds:
+                each_round.match_schedule = round_match_schedule
+                each_round.save()
 
         select_players = request.POST.get('select_players')
         if select_players == 'now':
             players_for_round = request.POST.getlist('add_to_round[]')
-
-
+            for each_round in ladder_rounds:
+                for player in players_for_round:
+                    add_player_to_round(each_round.id, player)
 
     players = Player.objects.all().order_by('ranking')
     context = {

@@ -17,7 +17,7 @@ class Ladder(models.Model):
         (COMPLETED, 'Completed'),
         (CANCELLED, 'Cancelled')
     )
-    title = models.CharField(max_length=101)
+    title = models.CharField(max_length=101, unique=True)
     start_date = models.DateField(null=True)
     end_date = models.DateField(null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
@@ -30,7 +30,7 @@ class Ladder(models.Model):
         ]
 
     def __str__(self):
-        return self.title
+        return f'id: {self.id}, Title: {self.title}, Start Date: {self.start_date}, End Date: {self.end_date}'
 
 
 class RoundMatchSchedule(models.Model):

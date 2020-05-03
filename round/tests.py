@@ -5,7 +5,7 @@ from players.models import Player
 from .utils import add_player_to_round, ensure_player_not_already_in_round, ranking_change, update_ladder_ranking, \
     get_full_ladder_details, date_range, add_intervals_to_start_time, get_number_of_timeslots, \
     create_match_schedule_with_round_match_schedule, validate_and_create_ladder_round, date_for_day_of_the_year, \
-    save_scheduled_matches
+    save_scheduled_matches, validate_and_create_ladder_rounds
 
 
 # Create your tests here.
@@ -151,7 +151,7 @@ class RoundUtilsTestCase(TestCase):
         match4.result = Match.PLAYER_2_WON
         match4.save()
 
-        #create the RoundMatchSchedule
+        # create the RoundMatchSchedule
 
         # populate the rounds with Matches
 
@@ -387,5 +387,41 @@ class RoundUtilsTestCase(TestCase):
         number_of_matches_saved = save_scheduled_matches(LadderRound.objects.all().first(), scheduled_matches)
         saved_scheduled_matches = MatchSchedule.objects.filter(ladder_round=LadderRound.objects.all().first())
         self.assertTrue(len(saved_scheduled_matches) == 4)
+
+    def test_setup_ladder_rounds(self):
+        ladder = Ladder(
+            title="Test Ladder",
+            start_date=datetime.today().date(),
+        )
+        # ten rounds, weekly, no end date
+        number_of_rounds = 10
+        first_round_start_date = ladder.start_date
+        duration_of_round = 'weekly'
+        # duration_of_round = 'fortnightly'
+        ladder_rounds = validate_and_create_ladder_rounds(ladder, number_of_rounds, first_round_start_date, duration_of_round)
+        print(f'ten rounds, weekly, no end date - ladder_rounds should be 10: {len(ladder_rounds)}')
+        self.assertTrue(len(ladder_rounds) == 10)
+
+        # fortnightly, end_date 20 weeks later
+        number_of_rounds = None
+        end_date = datetime.today() + timedelta(weeks=20)
+        ladder.end_date = end_date.date()
+        duration_of_round = 'fortnightly'
+        ladder_rounds = validate_and_create_ladder_rounds(ladder, number_of_rounds, first_round_start_date, duration_of_round)
+        print(f'fortnightly, end_date 20 weeks later - ladder_rounds should be 10: {len(ladder_rounds)}')
+
+        self.assertTrue(len(ladder_rounds) == 10)
+
+        # monthly, end_date 52 weeks
+        number_of_rounds = None
+        duration_of_round = "monthly"
+        end_date = datetime.today() + timedelta(weeks=52)
+        ladder.end_date = end_date.date()
+        ladder_rounds = validate_and_create_ladder_rounds(ladder, number_of_rounds, first_round_start_date, duration_of_round)
+        print(f'monthly, end_date 52 weeks - ladder_rounds should be 12: {len(ladder_rounds)}')
+
+        self.assertTrue(len(ladder_rounds) == 12)
+
+
 
 
