@@ -1,5 +1,6 @@
 import json
 from collections import namedtuple
+from django.db import IntegrityError
 from .models import PlayersInLadderRound, \
     PlayerRanking, \
     Ladder, \
@@ -10,6 +11,7 @@ from .models import PlayersInLadderRound, \
 
 from players.models import Player
 from datetime import datetime, timedelta, date
+from dateutil.relativedelta import relativedelta
 
 
 def get_players_in_round(ladder_round):
@@ -258,24 +260,22 @@ def matches_player_played_in(player, ladder):
     # todo: This is not the best way but it kinda works for now.
     # need to be smarter on how to do this, polymorphism is dead!
     if ladder is None:
-        matches_played_in_as_player1 = Match.objects.filter(player1=player) \
-            .filter(result__gt=Match.NOT_PLAYED) \
-            .order_by('-last_updated')
-
-        matches_played_in_as_player2 = Match.objects.filter(player2=player) \
-            .filter(result__gt=Match.NOT_PLAYED) \
-            .order_by('-last_updated')
+        matches_played_in_as_player1 = Match.objects.filter(player1=player, result__gt=Match.NOT_PLAYED).order_by(
+            '-last_updated')
+        matches_played_in_as_player2 = Match.objects.filter(player2=player, result__gt=Match.NOT_PLAYED).order_by(
+            '-last_updated')
     else:
-        ladder_rounds = LadderRound.objects.all().filter(ladder=ladder)
-        matches_played_in_as_player1 = Match.objects.filter(player1=player) \
-            .filter(result__gt=Match.NOT_PLAYED) \
-            .filter(ladder_round__in=ladder_rounds) \
-            .order_by('-last_updated')
+        ladder_id = ladder.id
 
-        matches_played_in_as_player2 = Match.objects.filter(player2=player) \
-            .filter(result__gt=Match.NOT_PLAYED) \
-            .filter(ladder_round__in=ladder_rounds) \
-            .order_by('-last_updated')
+        ladder_rounds = list(LadderRound.objects.filter(ladder=ladder))
+
+        matches_played_in_as_player1 = Match.objects.filter(player1=player, result__gt=Match.NOT_PLAYED,
+                                                            ladder_round__in=ladder_rounds).order_by(
+            '-last_updated')
+        matches_played_in_as_player2 = Match.objects.filter(player2=player, result__gt=Match.NOT_PLAYED,
+                                                            ladder_round__in=ladder_rounds).order_by(
+            '-last_updated')
+
     all_matches = []
 
     for match in matches_played_in_as_player1:
@@ -345,15 +345,14 @@ def get_full_ladder_details(ladder):
     full_details = {}
     # Get all the players who have entered the ladder
     all_player_matches = []
-    all_rounds = LadderRound.objects.all().filter(ladder=ladder).filter(
-        status__in=[LadderRound.CREATED, LadderRound.OPEN, LadderRound.CLOSED, LadderRound.COMPLETED]) \
+    #if LadderRound.objects.filter(ladder=ladder, status__in=[LadderRound.CREATED, LadderRound.OPEN, LadderRound.CLOSED, LadderRound.COMPLETED]).exists():
+    all_rounds = LadderRound.objects.filter(ladder=ladder, status__in=[LadderRound.CREATED, LadderRound.OPEN, LadderRound.CLOSED, LadderRound.COMPLETED]) \
         .order_by('start_date')
     all_players = list(Player.objects.all().order_by('ranking'))
     for each_player in all_players:
         player_matches = matches_player_played_in(each_player, ladder)
         rounds_player_had_matches = []
         for each_round in all_rounds:
-            games = []
             for each_match in player_matches:
                 if each_round.id == each_match['ladder_round_id']:
                     rounds_player_had_matches.append({'round_id': each_round.id,
@@ -364,15 +363,9 @@ def get_full_ladder_details(ladder):
                                    'player_ranking': each_player.ranking,
                                    'player_name': f'{each_player.first_name} {each_player.last_name}',
                                    'games': rounds_player_had_matches})
-    # get all the rounds for the ladder
-    # get all the results for the rounds that are complete
-    # for player in all_players:
-
-    full_details = {'title': ladder.title,
-                    'start_date': ladder.start_date,
-                    'rounds': [{
-                        'test': 'test'
-                    }]}
+        # get all the rounds for the ladder
+        # get all the results for the rounds that are complete
+        # for player in all_players:
     return all_player_matches
 
 
@@ -402,7 +395,10 @@ def is_int(value):
 
 
 def add_intervals_to_start_time(start_time, interval, number_of_intervals):
-    start_time_time_obj = datetime.strptime(start_time, '%H:%M')
+    if isinstance(start_time, datetime):
+        start_time_time_obj = start_time
+    else:
+        start_time_time_obj = datetime.strptime(start_time, '%H:%M')
     total_minutes = int(interval) * int(number_of_intervals)
     end_time = start_time_time_obj + timedelta(minutes=total_minutes)
     return end_time.time()
@@ -499,7 +495,8 @@ def save_scheduled_matches(ladder_round, scheduled_matches):
             historic_match.delete()
     for each_day in scheduled_matches:
         for match in each_day['matches']:
-            match_schedule = save_scheduled_match(ladder_round, match['match'], each_day['day'], match['court'], match['timeslot'])
+            match_schedule = save_scheduled_match(ladder_round, match['match'], each_day['day'], match['court'],
+                                                  match['timeslot'])
             counter += 1
     return counter
 
@@ -509,15 +506,15 @@ def save_scheduled_match(ladder_round, match_id, day, court, timeslot):
     days = len(round_match_schedule.match_days.split(','))
     start_time = round_match_schedule.start_time
     time_slot = datetime.strptime(timeslot, '%H:%M').time()
-    time_slot_in_min = time_slot.hour*60 + time_slot.minute
-    start_time_in_min = start_time.hour*60 + start_time.minute
+    time_slot_in_min = time_slot.hour * 60 + time_slot.minute
+    start_time_in_min = start_time.hour * 60 + start_time.minute
     time_difference_in_min = time_slot_in_min - start_time_in_min
 
     print(f'Time slot: {time_slot_in_min} - start_time: {start_time_in_min} = {time_difference_in_min}')
-    row = (time_difference_in_min)/round_match_schedule.time_interval
+    row = (time_difference_in_min) / round_match_schedule.time_interval
     column = court
     print(f'column: {column} + number_of_courts: {round_match_schedule.number_of_courts} * (row-1) ({row} - 1)')
-    grid_location = int(column) + int(round_match_schedule.number_of_courts*(row))
+    grid_location = int(column) + int(round_match_schedule.number_of_courts * (row))
     print(f'Gridlocation: {grid_location}')
     match_schedule = MatchSchedule(
         day=date_for_day_of_the_year(day, ladder_round.start_date.strftime('%Y')),
@@ -528,3 +525,163 @@ def save_scheduled_match(ladder_round, match_id, day, court, timeslot):
         time_grid_location=grid_location)
     match_schedule.save()
     return match_schedule
+
+
+def validate_and_create_ladder_rounds(ladder, number_of_rounds, first_round_start_date, duration_of_round):
+    print(f'{type(ladder.start_date)}')
+    print(f'{type(first_round_start_date)}')
+    try:
+        if duration_of_round == 'weekly':
+            time_duration_of_a_round = timedelta(weeks=1)
+        elif duration_of_round == 'fortnightly':
+            time_duration_of_a_round = timedelta(weeks=2)
+
+        if first_round_start_date:
+            start_date = first_round_start_date
+        else:
+            start_date = ladder.start_date
+
+        if number_of_rounds == "":
+            if ladder.end_date is None:
+                raise ValueError('The number_of_rounds OR the ladder.end_date must be set!')
+            else:
+                time_duration_of_a_round = None
+                # If the number of rounds and ladder.end_date is selected then the number of of rounds takes precedence
+                # calculate the number of rounds based on the length of the ladder (end_date - start_date)/duration_of_round
+                time_difference = (ladder.end_date - ladder.start_date)
+                if duration_of_round == 'weekly':
+                    number_of_rounds = int(time_difference.days / 7)
+                elif duration_of_round == 'fortnightly':
+                    number_of_rounds = int(time_difference.days / 14)
+                elif duration_of_round == 'monthly':
+                    number_of_rounds = int(time_difference.days / 30)
+                else:
+                    number_of_rounds = 1
+
+            print(f'Number of rounds: {number_of_rounds}')
+        ladder_rounds = []
+
+        for i in range(number_of_rounds):
+            end_date = get_round_end_date(start_date, duration_of_round)
+            ladder_round = LadderRound(
+                ladder=ladder,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            ladder_round.save()
+            ladder_rounds.append(ladder_round)
+            start_date = end_date + timedelta(days=1)
+
+        return ladder_rounds
+    except ValueError as error:
+        raise error
+
+
+def get_round_end_date(start_date, duration_of_round):
+    end_date = None
+    if duration_of_round == 'weekly':
+        time_duration_of_a_round = timedelta(days=6)
+        end_date = start_date + time_duration_of_a_round
+    elif duration_of_round == 'fortnightly':
+        time_duration_of_a_round = timedelta(days=13)
+        end_date = start_date + time_duration_of_a_round
+    elif duration_of_round == 'monthly':
+        end_date = start_date + relativedelta(months=+1)
+        end_date = end_date - timedelta(days=1)
+    print(f'start_date: {start_date}, end_date: {end_date}')
+    return end_date
+
+
+def generate_round_match_schedule(match_days, number_of_courts, start_time, end_time, time_interval, number_of_games):
+    if isinstance(match_days, list):
+        match_days_str = ",".join(map(str, match_days))
+    if is_int(number_of_games):
+        number_of_games = int(number_of_games)
+    else:
+        number_of_games = 0
+
+    if number_of_games > 0:
+        number_of_time_slots = int(float(number_of_games) / float(number_of_courts) + 1)
+
+        end_time = add_intervals_to_start_time(start_time, time_interval, int(number_of_time_slots))
+
+    number_of_timeslots = get_number_of_timeslots(start_time, end_time, time_interval)
+    round_match_schedule = RoundMatchSchedule.objects.create(match_days=match_days_str,
+                                                             number_of_courts=number_of_courts,
+                                                             start_time=start_time,
+                                                             end_time=end_time,
+                                                             number_of_timeslots=number_of_timeslots,
+                                                             time_interval=int(time_interval))
+    round_match_schedule.save()
+
+    return round_match_schedule
+
+
+def validate_and_create_ladder(ladder_name, ladder_start_date, ladder_end_date):
+    if ladder_name:
+        ladder = Ladder(
+            title=ladder_name
+        )
+        ladder.start_date = datetime.strptime(ladder_start_date, '%Y-%m-%d').date()
+        if ladder_end_date:
+            ladder.end_date = datetime.strptime(ladder_end_date, '%Y-%m-%d').date()
+
+        try:
+            ladder.status = ladder.OPEN
+            ladder.save()
+        except IntegrityError:
+            raise ValueError(f'The supplied title is not unique: {ladder_name}')
+        return ladder
+    else:
+        raise ValueError(f'The name of the ladder needs to be set cannot be None: {ladder_name}')
+
+
+'''
+function used to determine the day of the year for the days of the week selected based on the start date
+of the round.  This is needed because the RoundMatchSchedule is constructed with the day of the year rather than the day
+ of the week.
+ 
+Function returns a list of the match days as day of the year
+'''
+
+
+def setup_match_days(round_start_date, week_days):
+    match_days = []
+    round_start_week_day = round_start_date.weekday()
+    round_start_date_day_of_year = round_start_date.timetuple().tm_yday
+    print(f'day of the week the ladder round starts on: {round_start_week_day}')
+    days_of_the_week = map(convert_list_of_day_names_to_day_of_week, week_days)
+    for day in days_of_the_week:
+        if round_start_week_day > day:
+            diff = round_start_week_day - day
+            day_of_match_day = round_start_date_day_of_year - diff + 7
+            match_days.append(day_of_match_day)
+        elif round_start_week_day < day:
+            diff = day - round_start_week_day
+            day_of_match_day = round_start_date_day_of_year + diff
+            match_days.append(day_of_match_day)
+        elif round_start_week_day == day:
+            match_days.append(round_start_date_day_of_year)
+
+    return match_days
+
+
+def convert_list_of_day_names_to_day_of_week(week_day):
+
+    if week_day == 'Monday':
+        return 0
+    elif week_day == 'Tuesday':
+        return 1
+    elif week_day == 'Wednesday':
+        return 2
+    elif week_day == 'Thursday':
+        return 3
+    elif week_day == 'Friday':
+        return 4
+    elif week_day == 'Saturday':
+        return 5
+    elif week_day == 'Sunday':
+        return 6
+    else:
+        raise ValueError(f'The value does not appear to be a day of the week: {week_day}')
+

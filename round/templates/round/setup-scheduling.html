@@ -34,7 +34,7 @@
                                 <ul>
                                     {% for day in days %}
                                         <li><input type="checkbox" name="match-day[]" value="{{ day|date:"z" }}"><label
-                                                for="matchday[]">{{ day|date:"l, j M" }}</label></li>
+                                                for="match-day[]">{{ day|date:"l, j M" }}</label></li>
 
                                     {% endfor %}
                                 </ul>
