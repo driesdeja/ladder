@@ -79,7 +79,7 @@ class LadderRound(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     status = models.IntegerField(choices=Status, default=CREATED)
     ladder = models.ForeignKey(Ladder, on_delete=models.CASCADE)
-    match_schedule = models.ForeignKey(RoundMatchSchedule, on_delete=models.CASCADE, null=True)
+    match_schedule = models.ForeignKey(RoundMatchSchedule, on_delete=models.CASCADE, null=True, blank=True)
 
 
 class PlayersInLadderRound(models.Model):

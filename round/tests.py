@@ -5,7 +5,7 @@ from players.models import Player
 from .utils import add_player_to_round, ensure_player_not_already_in_round, ranking_change, update_ladder_ranking, \
     get_full_ladder_details, date_range, add_intervals_to_start_time, get_number_of_timeslots, \
     create_match_schedule_with_round_match_schedule, validate_and_create_ladder_round, date_for_day_of_the_year, \
-    save_scheduled_matches, validate_and_create_ladder_rounds
+    save_scheduled_matches, validate_and_create_ladder_rounds, setup_match_days
 
 
 # Create your tests here.
@@ -422,6 +422,18 @@ class RoundUtilsTestCase(TestCase):
 
         self.assertTrue(len(ladder_rounds) == 12)
 
+    def test_setup_match_days(self):
+        ladder_round = LadderRound.objects.all().first()
+        round_start_date = ladder_round.start_date - timedelta(days=5)
+        all_week_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        game_days = [all_week_days[2], all_week_days[3]]
+        match_days = setup_match_days(round_start_date, game_days)
+        round_start_day = round_start_date.timetuple().tm_yday
+        match_dates = []
+        for day in match_days:
+            match_dates.append(date_for_day_of_the_year(day, '2020'))
+        print(f'round start day: {round_start_date},  {round_start_day} - game_days: {game_days}, match_days: {match_days}, match_dates: {list(match_dates)}')
+        self.assertTrue(len(match_days) == len(game_days))
 
 
 
