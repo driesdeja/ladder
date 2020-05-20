@@ -54,14 +54,6 @@ def save_players(players):
 
 
 def get_pdf_file(data_to_download):
-    players = Player.objects.all()
-    player_list = []
-    for each_player in players:
-        player_list.append([each_player.ranking,
-                            each_player.first_name,
-                            each_player.last_name,
-                            each_player.email,
-                            each_player.contact_number])
 
     doc = io.BytesIO()
 
@@ -95,12 +87,27 @@ def get_pdf_file(data_to_download):
     spacer = Spacer(1, 10)
 
     # List with all of the players.
-    player_list_table = Table(player_list)
+    if data_to_download == 'player_list':
+        data = Table(get_player_list())
+    else:
+        data = None
 
-    page_elements = [header_table, spacer, player_list_table]
+    page_elements = [header_table, spacer, data]
 
     pdf.build(page_elements)
 
     doc.seek(0)
 
     return doc
+
+
+def get_player_list():
+    players = Player.objects.all().order_by('ranking')
+    player_list = []
+    for each_player in players:
+        player_list.append([each_player.ranking,
+                            each_player.first_name,
+                            each_player.last_name,
+                            each_player.email,
+                            each_player.contact_number])
+    return player_list

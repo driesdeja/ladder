@@ -26,5 +26,6 @@ urlpatterns = [
          name='setup-scheduling'),
     path('administration/ladder/round/<int:round_id>/save-scheduled-match', views.save_scheduled_match_view, name='save-scheduled-match'),
     path('administration/ladder/ladder-setup-wizard', views.ladder_setup_wizard, name='ladder-setup-wizard'),
-    path('player/<int:player_id>', views.player_profile, name='player-profile')
+    path('player/<int:player_id>', views.player_profile, name='player-profile'),
+    path('ladder/round/<int:round_id>/draw/match_schedule/download', views.download_match_schedule, name='download-match-schedule'),
 ]

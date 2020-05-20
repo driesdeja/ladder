@@ -27,7 +27,7 @@ from .utils import validate_match_results, get_players_in_round, get_players_not
     validate_and_create_ladder, setup_match_days
 from round.utils import calculate_change_in_ranking, update_ladder_ranking, matches_player_played_in, date_range
 from players.views import list_players
-
+from .reports import get_pdf_match_schedule
 
 def list_rounds(request):
     # round_date = datetime.strptime('28 NOV 2019', '%d %b %Y')
@@ -735,3 +735,12 @@ def ladder_setup_wizard(request):
         'players': players
     }
     return render(request, 'round/ladder_setup_wizard.html', context)
+
+
+def download_match_schedule(request, round_id):
+    ladder_round = LadderRound.objects.get(id=round_id)
+    filename = f'round_match_schedule.pdf'
+    pdf_file = get_pdf_match_schedule(ladder_round)
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=%s' % filename
+    return response
