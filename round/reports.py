@@ -67,17 +67,25 @@ def get_pdf_match_schedule(ladder_round):
                         [f'{match[0].match.player1.first_name} {match[0].match.player1.last_name}'],
                         ['vs'],
                         [f'{match[0].match.player2.first_name} {match[0].match.player2.last_name}']
-                    ], colWidths=(45*mm))
+                    ], colWidths=(45*mm), rowHeights=None)
                     match_in_slot_table_style = TableStyle([
                         ('BACKGROUND', (0, 0), (-1, -1), colors.green),
-                        ('ALIGN', (0, 0), (-1,-1), 'CENTER')
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('BOX', (0, 0), (-1, -1), 0.5, colors.black),
+                        ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
+                        ('FONTSIZE', (0, 0), (-1, -1), 8),
                     ])
                     match_in_slot_table.setStyle(match_in_slot_table_style)
                     matches_in_slot.append(match_in_slot_table)
             time_slot_table = Table([
                 [time_slot_time.strftime('%H:%M')],
                 matches_in_slot
+            ], rowHeights=None)
+            time_slot_table_style = TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#FFAE78')),
+                ('BOX', (0, 0), (-1, -1), 0.5, colors.black)
             ])
+            time_slot_table.setStyle(time_slot_table_style)
             time_slot_table_list.append(time_slot_table)
             print(time_slot_time)
         day_table = Table([
