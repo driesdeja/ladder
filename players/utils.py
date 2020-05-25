@@ -54,7 +54,7 @@ def save_players(players):
 
 
 def get_pdf_file(data_to_download):
-    players = Player.objects.all()
+    players = Player.objects.all().order_by('ranking')
     player_list = []
     for each_player in players:
         player_list.append([each_player.ranking,
