@@ -1,4 +1,7 @@
 <div class="nav-left">
+    <div class="row pl-2">
+        <span class="card-title">Rounds:</span>
+    </div>
     {% for all_rounds in ladder_rounds %}
         <div class="row {% if all_rounds.status == all_rounds.CLOSED %}round-in-progress{% endif %} {% if ladder_round.id == all_rounds.id %}active{% endif %}">
             {% if all_rounds.status == ladder_round.COMPLETED %}

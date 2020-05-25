@@ -13,6 +13,7 @@
     --color-primary-2: #E38648;
     --color-primary-3: #A64B0E;
     --color-primary-4: #7E3300;
+    --color-gray-background: #F2F2F2;
     --rgba-primary-0: rgba(205, 102, 32, 1);
     --rgba-primary-1: rgba(255, 174, 120, 1);
     --rgba-primary-2: rgba(226, 134, 72, 1);
@@ -74,6 +75,13 @@
     background-color: #ffffff;
     border-radius: 25px;
     padding-top: 10px;
+    padding-bottom: 10px;
+
+}
+
+.content-page {
+    min-height: 600px;
+
 }
 
 body {
@@ -91,14 +99,18 @@ form input {
 }
 
 header {
+    display: flex;
+    justify-content: space-between;
     margin-top: 10px;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding: 10px 10px;
     background-color: #EFEFEF;
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
 }
 
+header img {
+    border-radius: 5px;
+}
 #navigation-section {
     margin-top: 10px;
     background-color: var(--color-primary-0);
@@ -108,9 +120,11 @@ header {
 
 /* Set black background color, white text and some padding */
 footer {
-    background-color: #F2F2F2;
-    color: white;
+    border-radius: 10px;
+    margin-bottom: 10px;
     padding: 15px;
+    background-color: var(--color-gray-background);
+    color: var(--color-primary-0);
 }
 
 .nav-link {
@@ -119,6 +133,15 @@ footer {
 
 .nav-link:hover {
     color: black;
+}
+
+.content-wrapper {
+    margin: 5px 0px;
+    padding: 5px 0px;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: lightgrey;
+    border-width: thin;
 }
 
 .panel {
@@ -526,4 +549,35 @@ footer {
 .round-progress-bar {
     border-radius: 5px;
     background-color: #808080;
+}
+
+.player-nav {
+
+    display: flex;
+    padding: 5px 5px 5px 15px;
+    border-radius: 5px;
+    background-color: var(--color-primary-1);
+    line-height: 45px;
+    flex-flow: row;
+}
+
+.player-nav a {
+    padding: 0 5px;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    color: var(--color-primary-4);
+}
+
+.player-nav a:hover {
+    color: #FFFFFF;
+}
+
+.player-import {
+    padding-left: 30px;
+}
+
+.built-by {
+    text-align: right;
+    font-size: small;
 }

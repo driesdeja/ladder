@@ -11,10 +11,10 @@
     <form method="POST">
         {% csrf_token %}
         <div class="row">
-            <div class="col-3 pt-2">
+            <div class="col-3">
                 {% include 'round/round_detail_nav.html' with ladder_round=ladder_round ladder_rounds=ladder_rounds %}
             </div>
-            <div class="col-9">
+            <div class="col-9 pl-0">
                 <div class="info-header">
                     <p>Select start and end days of the new round:</p>
                 </div>

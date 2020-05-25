@@ -6,6 +6,7 @@ class Player(models.Model):
     last_name = models.CharField(max_length=30)
     contact_number = models.CharField(max_length=30)
     ranking = models.IntegerField(default=0)
+    email = models.EmailField(blank=True)
 
     class Meta:
         ordering = ['last_name']

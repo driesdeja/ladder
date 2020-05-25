@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from django.template.context_processors import media
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
@@ -78,8 +80,12 @@ WSGI_APPLICATION = 'ladder.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'ladder',
+        'USER': 'ladder_user',
+        'PASSWORD': 'ladder_user_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -131,3 +137,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS')
+
+DOWNLOAD_ROOT = os.path.join(BASE_DIR, 'downloads')
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

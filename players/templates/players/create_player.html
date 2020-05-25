@@ -1,5 +1,8 @@
 {% extends "players/base.html" %}
 {% block content %}
+    {% if perms.players.add_player %}
+        {% include 'players/player_nav.html' %}
+    {% endif %}
     <form method="POST" action="{% url 'create-player' %}">
         {% csrf_token %}
         {{ form.as_p }}

@@ -1,64 +1,80 @@
 {% extends 'players/base.html' %}
 
 {% block content %}
-    <div class="panel">
-        <div class="panel-heading">{{ ladder.title }}</div>
-        <div class="panel-body">{{ ladder.start_date }} - {{ ladder.end_date }}</div>
-    </div>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-3 pl-0 pr-0 pt-2">
-                {% include 'round/round_detail_nav.html' with ladder_round=ladder_round ladder_rounds=ladder_rounds  %}
-            </div>
-            <div class="col-md-9 pt-2 pr-0">
-                <div class="content-panel">
-                    <table class="ladder-overview">
-                        <thead>
-                        <th>Ranking</th>
-                        <th>Player</th>
-                        {% for ladder_round in ladder_rounds %}
-                            <th class="vertical-table-header">{{ ladder_round.end_date|date:"j M" }}</th>
-                        {% endfor %}
-                        </thead>
-                        <tbody>
+    {% if ladder %}
+        <div class="panel">
+            <div class="panel-heading">{{ ladder.title }}</div>
+            <div class="panel-body">{{ ladder.start_date }} - {{ ladder.end_date }}</div>
+        </div>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-3 pl-0 pr-0 pt-2">
+                    {% include 'round/round_detail_nav.html' with ladder_round=ladder_round ladder_rounds=ladder_rounds %}
+                </div>
+                <div class="col-md-9 pt-2 pr-0">
+                    <div class="content-panel">
+                        <table class="ladder-overview">
+                            <thead>
+                            <th>Ranking</th>
+                            <th>Player</th>
+                            {% for ladder_round in ladder_rounds %}
+                                <th class="vertical-table-header">{{ ladder_round.end_date|date:"j M" }}</th>
+                            {% endfor %}
+                            </thead>
+                            <tbody>
 
 
-                        {% for each_player in full_ladder_details %}
-                            <tr>
-                                <td class="text-align-center">
-                                    {{ each_player.player_ranking }}
-                                </td>
-                                <td>
+                            {% for each_player in full_ladder_details %}
+                                <tr>
+                                    <td class="text-align-center">
+                                        {{ each_player.player_ranking }}
+                                    </td>
+                                    <td>
 
-                                    <a href="{% url 'player-profile' each_player.player_id %}">
-                                        {{ each_player.player_name }}
-                                    </a>
-                                </td>
+                                        <a href="{% url 'player-profile' each_player.player_id %}">
+                                            {{ each_player.player_name }}
+                                        </a>
+                                    </td>
 
-                                {% for ladder_round in ladder_rounds %}
-                                    {% if ladder_round.status == ladder_round.COMPLETED %}
-                                    <td class="text-align-center">{% spaceless %}
-                                        {% for each_game in each_player.games %}
-                                            {% if each_game.round_id == ladder_round.id %}
-                                                {{ each_game.games_for }}
-                                            {% endif %}
-                                        {% endfor %}
-                                    {% endspaceless %}</td>
-                                    {% else %}
-                                        <td>&nbsp;</td>
-                                    {% endif %}
-                                {% endfor %}
-                            </tr>
-
-
-                        {% endfor %}
+                                    {% for ladder_round in ladder_rounds %}
+                                        {% if ladder_round.status == ladder_round.COMPLETED %}
+                                            <td class="text-align-center">{% spaceless %}
+                                                {% for each_game in each_player.games %}
+                                                    {% if each_game.round_id == ladder_round.id %}
+                                                        {{ each_game.games_for }}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endspaceless %}</td>
+                                        {% else %}
+                                            <td>&nbsp;</td>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tr>
 
 
-                        </tbody>
-                    </table>
+                            {% endfor %}
+
+
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
+    {% else %}
+        <div>No Ladders have been setup.
+            {% if perms.round.can_administrate_ladder %}
+                <p>
+                    <a href="{% url 'ladder-setup-wizard' %}">Setup a new Ladder using the wizzard</a>
+                </p>
+                <p>
+                    <a href="{% url 'ladder-admin' %}">Ladder Administration</a>
+                </p>
+            {% else %}
+                <p>
+                    Please contact your administrator should you believe this is an error.
+                </p>
+            {% endif %}
+        </div>
+    {% endif %}
 {% endblock content %}

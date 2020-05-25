@@ -1,0 +1,43 @@
+<nav class="navbar navbar-expand-sm">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item {% if request.resolver_match.url_name == "ladder-overview" %}active{% endif %}">
+                <a href="{% url 'ladder-overview' %}" class="nav-link">Home</a></li>
+            <li class="nav-item {% if request.resolver_match.url_name == "list-players" %}active{% endif %}">
+                <a href="{% url 'list-players' %}" class="nav-link">Players</a></li>
+            {% if perms.round.can_administrate_ladder %}
+                <li class="nav-item {% if request.resolver_match.url_name == "ladder-admin" %}active{% endif %}">
+                    <a href="{% url 'ladder-admin' %}" class="nav-link">Ladder Administration</a>
+                </li>
+            {% endif %}
+        </ul>
+        <ul class="navbar-nav ml-auto">
+            {% if user.is_authenticated %}
+                {% if user.profile.player %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">{% if user.first_name %}
+                        {{ user.first_name }}
+                    {% else %}
+                        Profile
+                    {% endif %}
+                    </a></li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'non-player-profile' %}">
+                        {% if user.first_name %}
+                            {{ user.first_name }}
+                        {% else %}
+                            Profile
+                        {% endif %}
+                    </a></li>
+                {% endif %}
+
+                <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}"><span
+                        class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+
+            {% else %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'login' %}"><span
+                        class="glyphicon glyphicon-log-in"></span> Login</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>

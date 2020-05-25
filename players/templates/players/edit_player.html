@@ -1,5 +1,10 @@
 {% extends "players/base.html" %}
 {% block content %}
+    {% if user.is_authenticated %}
+        {% if perms.players.add_player %}
+            {% include 'players/player_nav.html' %}
+        {% endif %}
+    {% endif %}
     <form method="POST">
         {% csrf_token %}
         {{ form.non_field_errors }}
