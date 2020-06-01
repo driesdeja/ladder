@@ -13,7 +13,12 @@
                 <p>Draw for ladder : {{ ladder_round.start_date }}</p>
 
                 {% if ladder_round.status < ladder_round.CLOSED and players|length|divisibleby:2 %}
-                    <p><input type="submit" class="btn btn-outline-info" name="close" value="Close Draw"/></p>
+
+                    <div>
+                        <input type="submit" class="btn btn-outline-info" name="close" value="Close Draw"/>
+                        <a href="{% url 'edit-draw' ladder_round.id %}" class="btn btn-outline-info">Edit Draw</a>
+                    </div>
+
                     <p>The round must be closed before scheduling games.</p>
                 {% elif ladder_round.status == ladder_round.CLOSED %}
                     <p>Re-open draw</p>
