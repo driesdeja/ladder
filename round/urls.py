@@ -13,6 +13,7 @@ urlpatterns = [
     path('administration/ladder/round/<int:round_id>/add-players-to-round', views.add_players_to_round,
          name='add-players-to-round'),
     path('administration/ladder/round/<int:round_id>/draw', views.round_draw, name='round-draw'),
+    path('administration/ladder/round/<int:round_id>/edit-draw', views.edit_draw, name="edit-draw"),
     path('administration/ladder/round/<int:round_id>/close-draw', views.close_draw, name='close-draw'),
     path('administration/ladder/round/<int:round_id>/capture', views.capture_results, name='capture-results'),
     path('administration/ladder/round/<int:round_id>', views.admin_round_detail, name='admin-round-detail'),

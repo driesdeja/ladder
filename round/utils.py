@@ -40,9 +40,8 @@ def setup_matches_for_draw(ladder_round, players):
         match.ladder_round = ladder_round
         match.player1 = players[x]
         if x + 1 >= len(players):
-            print(str(players[x]) + 'player 2: None')
+            pass
         else:
-            print(str(players[x]) + 'player 2: ' + str(players[x + 1]))
             match.player2 = players[x + 1]
         matches.append(match)
     return matches
@@ -179,9 +178,9 @@ def ranking_change(games_won):
     elif games_won == 1:
         player_ranking_change = 0
     elif games_won == 2:
-        player_ranking_change = -1
-    elif games_won == 3:
         player_ranking_change = -2
+    elif games_won == 3:
+        player_ranking_change = -4
     else:
         raise ValueError(f'Games won must be between 0 and 3 and not {games_won}!')
     return player_ranking_change
@@ -450,10 +449,10 @@ def validate_and_create_ladder_round(ladder, start_date, end_date):
         raise ValueError(
             f'The round can only start after the ladder started. Check the start date of the round.'
             f'First day of the round is: {start_date}, end_date: {end_date} ')
-    if not start_date >= date.today():
-        raise ValueError(
-            f'Rounds can only be future dated. The selected start date is in the past ({datetime.strftime(start_date, "%d %b")}) ,'
-            f' today\'s date is : {datetime.strftime(datetime.today(), "%d %b")}')
+   # if not start_date >= date.today():
+   #     raise ValueError(
+   #         f'Rounds can only be future dated. The selected start date is in the past ({datetime.strftime(start_date, "%d %b")}) ,'
+   #         f' today\'s date is : {datetime.strftime(datetime.today(), "%d %b")}')
     ladder_rounds = list(
         LadderRound.objects.filter(ladder=ladder).filter(end_date__gte=start_date))
 
@@ -689,3 +688,12 @@ def convert_list_of_day_names_to_day_of_week(week_day):
 def get_match_schedule_grid_location(day, time_slot, court, number_of_courts, number_of_timeslots):
     location = court + number_of_courts * (time_slot - 1) + (number_of_timeslots * number_of_courts * (day - 1))
     return location
+
+def close_ladder_round_draw(ladder_round, matches):
+    ladder_round.status = ladder_round.CLOSED  # Closed
+    ladder_round.save()
+    old_draw = Match.objects.filter(ladder_round=ladder_round)
+    if old_draw:
+        [item.delete() for item in old_draw]
+    [each.save() for each in matches]
+

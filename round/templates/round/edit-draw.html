@@ -1,0 +1,164 @@
+{% extends 'players/base.html' %}
+
+{% block content %}
+    {% include 'round/header-banner.html' with ladder=ladder_round.ladder %}
+    {% include 'round/ladder-admin-nav.html' with page_name='setup-draw' ladder=ladder_round.ladder ladder_round=ladder_round %}
+    <div class="row justify-content-sm-around">
+        <div id="edit-matches" class="col">
+            <form method="post" action="{% url 'edit-draw' ladder_round.id %}">
+                {% csrf_token %}
+                <p>Draw for ladder : {{ ladder_round.start_date }}</p>
+
+                <div class="row">
+                    <div class="col-8">
+                        <div class="match-container">
+                            <p>List of Matches</p> <input id="save-btn" type="button"
+                                                          class="btn btn-outline-info" value="Save"/>
+                            {% for match in matches %}
+                                <div class="edit-match-match">
+                                    <div class="row justify-content-center">
+                                        <p>Match {{ forloop.counter }}</p>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-5">
+                                            <div class="setup-match">
+                                                {% for player in players %}
+                                                    {% if match.player1 == player %}
+                                                        <div class="player-one">
+                                                            <div class="player-match">
+                                                                <input type="hidden" value="{{ player.id }}">
+                                                                {{ player.id }} {{ player.first_name }} {{ player.last_name }}
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="col-2">
+                                            VS.
+                                        </div>
+                                        <div class="col-5">
+                                            <div>
+                                                {% for player in players %}
+                                                    {% if match.player2 == player %}
+                                                        <div class="player-two">
+                                                            <div class="player-match">
+                                                                <input type="hidden" value="{{ player.id }}">
+                                                                {{ player.id }} {{ player.first_name }}
+                                                                {{ player.last_name }}
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <p>List of available players:</p>
+                        <div class="list-of-players" id="list-of-players">
+
+                        </div>
+                    </div>
+                </div>
+
+
+            </form>
+        </div>
+
+    </div>
+
+
+
+
+{% endblock content %}
+
+{% block javascript %}
+    <script type="application/javascript">
+        $(".player-match").draggable({
+            start: function (e, ui) {
+
+            },
+            revertDuration: 200,
+            helper: "clone",
+            revert: "invalid"
+        });
+
+        $(".player-one").droppable({
+            drop: handleDropEvent,
+            accept: function () {
+                let $self = $(this);
+                if ($self.children().length == 0) {
+                    return true;
+                }
+            }
+        })
+
+        $(".player-two").droppable({
+            drop: handleDropEvent,
+            accept: function () {
+                let $self = $(this);
+                if ($self.children().length == 0) {
+                    return true;
+                }
+            }
+        })
+
+        $(".list-of-players").droppable({
+            drop: function (e, ui) {
+                let $self = $(this);
+                let $item = ui.draggable;
+                $("#save-btn").attr("disabled", true);
+                $item.detach().prependTo($self);
+
+            }
+        });
+
+        function handleDropEvent(event, ui) {
+            let $self = $(this);
+            let $item = ui.draggable;
+            $item.detach().prependTo($self);
+            enableSave();
+        }
+
+        function enableSave() {
+            if ($(".list-of-players").children().length <= 1) {
+                console.log("enable");
+                console.log("disable: " + $(".list-of-players").children().length);
+                $("#save-btn").removeAttr("disabled")
+            } else {
+                console.log("disable: " + $(".list-of-players").children().length);
+                $("#save-btn").attr("disabled", true);
+            }
+        }
+
+        $('#save-btn').click(function () {
+            let payload = createMatchPayload();
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'payload',
+                value: JSON.stringify(payload)
+            }).appendTo('form');
+            $("form").submit();
+
+        });
+
+        function createMatchPayload() {
+            let matches = []
+            $(".edit-match-match").each(function (i, obj) {
+                let player1 = $(this).find(".player-one").find("input").attr("value")
+                let player2 = $(this).find(".player-two").find("input").attr("value")
+                matches.push({
+                    "player1": player1,
+                    "player2": player2
+                });
+
+            })
+
+            return matches
+        }
+    </script>
+{% endblock %}

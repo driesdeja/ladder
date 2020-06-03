@@ -3,11 +3,6 @@
 {% block content %}
     {% include 'round/header-banner.html' with ladder=ladder %}
     {% include 'round/ladder-admin-nav.html' with page_name='draw' ladder_id=ladder.id %}
-
-
-
-
-    </div>
     <form method="POST">
         {% csrf_token %}
         <div class="row">

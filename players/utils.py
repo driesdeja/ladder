@@ -55,6 +55,15 @@ def save_players(players):
 
 def get_pdf_file(data_to_download):
 
+    players = Player.objects.all().order_by('ranking')
+    player_list = []
+    for each_player in players:
+        player_list.append([each_player.ranking,
+                            each_player.first_name,
+                            each_player.last_name,
+                            each_player.email,
+                            each_player.contact_number])
+
     doc = io.BytesIO()
 
     pdf = SimpleDocTemplate(doc, pagesize=A4)
