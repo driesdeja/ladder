@@ -13,6 +13,7 @@ urlpatterns = [
     path('administration/ladder/round/<int:round_id>/add-players-to-round', views.add_players_to_round,
          name='add-players-to-round'),
     path('administration/ladder/round/<int:round_id>/draw', views.round_draw, name='round-draw'),
+    path('administration/ladder/round/<int:round_id>/edit-draw', views.edit_draw, name="edit-draw"),
     path('administration/ladder/round/<int:round_id>/close-draw', views.close_draw, name='close-draw'),
     path('administration/ladder/round/<int:round_id>/capture', views.capture_results, name='capture-results'),
     path('administration/ladder/round/<int:round_id>', views.admin_round_detail, name='admin-round-detail'),
@@ -26,5 +27,6 @@ urlpatterns = [
          name='setup-scheduling'),
     path('administration/ladder/round/<int:round_id>/save-scheduled-match', views.save_scheduled_match_view, name='save-scheduled-match'),
     path('administration/ladder/ladder-setup-wizard', views.ladder_setup_wizard, name='ladder-setup-wizard'),
-    path('player/<int:player_id>', views.player_profile, name='player-profile')
+    path('player/<int:player_id>', views.player_profile, name='player-profile'),
+    path('ladder/round/<int:round_id>/draw/match_schedule/download', views.download_match_schedule, name='download-match-schedule'),
 ]

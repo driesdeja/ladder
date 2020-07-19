@@ -1,5 +1,6 @@
 {% load round_custom_tags %}
 <div class="players-in-round">
+    <a href="{% url 'download-match-schedule'  round_id=ladder_round.id %}">Download Schedule</a>
     {% for day in round_match_schedule.match_days|as_list:',' %}
         <div class="match-day">
             <h2>{{ day|date_for_day_of_year:2020|date:'l j F, Y' }}</h2>

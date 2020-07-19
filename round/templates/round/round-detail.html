@@ -21,7 +21,7 @@
             <div class="col-md-9 pt-2 pr-0">
                 <div class="row">
                     {% if scheduled_matches and ladder_round.status >= ladder_round.CLOSED %}
-                        {% include 'round/scheduled_matches.html' with scheduled_matches=scheduled_matches round_match_schedule=round_match_schedule %}
+                        {% include 'round/scheduled_matches.html' with scheduled_matches=scheduled_matches round_match_schedule=round_match_schedule ladder_round=ladder_round %}
                     {% elif matches %}
                         {% include 'round/matches-in-round.html' with matches=matches %}
                     {% else %}

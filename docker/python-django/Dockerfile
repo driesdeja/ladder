@@ -1,11 +1,16 @@
-FROM python:3.8.2
+FROM python:3.8.3
 MAINTAINER driesdeja@gmail.com
-
-COPY ./ /ladder
 
 WORKDIR /ladder
 
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+RUN pip install --upgrade pip
+
+COPY ./requirements.txt .
+
 RUN pip install -r requirements.txt
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-
+COPY ./ /ladder
