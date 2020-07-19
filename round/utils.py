@@ -685,6 +685,11 @@ def convert_list_of_day_names_to_day_of_week(week_day):
         raise ValueError(f'The value does not appear to be a day of the week: {week_day}')
 
 
+def get_match_schedule_grid_location(day, time_slot, court, number_of_courts, number_of_timeslots):
+    location = court + number_of_courts * (time_slot - 1) + (number_of_timeslots * number_of_courts * (day - 1))
+    return location
+
+
 def close_ladder_round_draw(ladder_round, matches):
     ladder_round.status = ladder_round.CLOSED  # Closed
     ladder_round.save()

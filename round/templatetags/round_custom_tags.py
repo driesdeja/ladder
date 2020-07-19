@@ -1,5 +1,5 @@
 from django import template
-from round.utils import add_minutes, date_for_day_of_the_year
+from round.utils import add_minutes, date_for_day_of_the_year, get_match_schedule_grid_location
 
 register = template.Library()
 
@@ -37,5 +37,5 @@ def date_for_day_of_year(day, year):
 
 @register.simple_tag
 def grid_location(day, time_slot, court, number_of_courts, number_of_timeslots):
-    location = court + number_of_courts*(time_slot-1) + (number_of_timeslots*number_of_courts*(day-1))
+    location = get_match_schedule_grid_location(day, time_slot, court, number_of_courts, number_of_timeslots)
     return location
