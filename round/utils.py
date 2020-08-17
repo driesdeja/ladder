@@ -180,7 +180,7 @@ def ranking_change(games_won):
     elif games_won == 2:
         player_ranking_change = -2
     elif games_won == 3:
-        player_ranking_change = -4
+        player_ranking_change = -6
     else:
         raise ValueError(f'Games won must be between 0 and 3 and not {games_won}!')
     return player_ranking_change
