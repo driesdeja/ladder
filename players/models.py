@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import datetime
 
 
 class Player(models.Model):
@@ -13,3 +14,10 @@ class Player(models.Model):
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+
+
+class Active(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, null=True)
+    eff_from_date = models.DateField(default=datetime.now)
+    eff_to_date = models.DateField(blank=True, null=True)
+    transaction_date = models.DateTimeField(default=datetime.now)

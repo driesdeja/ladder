@@ -3,8 +3,10 @@ import os
 import json
 import io
 from io import TextIOWrapper
-from .models import Player
+from .models import Player, Active
+from round.utils import update_ladder_ranking
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, Image, Spacer
@@ -120,3 +122,35 @@ def get_player_list():
                             each_player.email,
                             each_player.contact_number])
     return player_list
+
+
+# When a player is deleted the ranking needs to be update.
+def delete_player(player):
+    update_ladder_ranking(player, 'delete', None)
+    player.delete()
+
+
+"""
+Activate a player. If not Active active (eff_to_date is null) records exist then a new one is created.  
+"""
+
+
+def activate_player(player, eff_from_date):
+    try:
+        active = Active.objects.get(player=player, eff_to_date__isnull=True)
+    except ObjectDoesNotExist:
+        Active.objects.create(player=player, eff_from_date=eff_from_date)
+
+"""
+De Activate a player by setting the eff_to_date to the date.
+"""
+
+
+def deactivate_player(player, eff_to_date):
+    try:
+        active = Active.objects.get(player=player, eff_to_date__isnull=True)
+        active.eff_to_date = eff_to_date
+        active.save()
+    except ObjectDoesNotExist:
+        pass  #implies that the player was not active as no active records were found
+

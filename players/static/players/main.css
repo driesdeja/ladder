@@ -627,3 +627,34 @@ footer {
     text-align: center;
     min-height: 30px;
 }
+
+.edit-player-details {
+    display: flex;
+    justify-content: space-around;
+    margin: 5px 0px;
+    padding: 5px 0px;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: lightgrey;
+    border-width: thin;
+
+}
+
+.player-active {
+    width: 100px;
+    padding: 5px 10px;
+    margin: 5px;
+    text-align: center;
+    background-color: greenyellow;
+    border-radius: 5px;
+    color: #0b2e13;
+}
+.player-inactive {
+    width: 100px;
+    padding: 5px 10px;
+    margin: 5px;
+    text-align: center;
+    background-color: red;
+    border-radius: 5px;
+    color: #FFFFFF;
+}
