@@ -14,12 +14,15 @@ from .utils import get_file_of_players, \
     save_players, \
     get_pdf_file, delete_player, activate_player, deactivate_player
 
+from . import raw_sql
 
 
 def list_players(request):
+    active_players = Active.objects.raw(raw_sql.ACTIVE_PLAYERS_SQL)
+    # players = [player.player for player in active_players]
     context = {
         'title': 'Player List',
-        'players': Player.objects.all().order_by('ranking')
+        'players': active_players
     }
     return render(request, 'players/player_list.html', context)
 
@@ -32,7 +35,7 @@ def edit_player(request, player_id):
     if active:
         is_active = False
         for each in active:
-            if each.eff_to_date is None or each.eff_to_date >= datetime.now().date():
+            if each.eff_to_date is None:  # or each.eff_to_date >= datetime.now().date():
                 is_active = True
     else:
         is_active = False
@@ -129,7 +132,6 @@ def export_players(request):
 
 
 def download_players(request):
-
     filename = 'player_list.pdf'
     pdf_file = get_pdf_file('player_list')
     response = HttpResponse(pdf_file, content_type='application/pdf')
