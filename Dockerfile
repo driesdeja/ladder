@@ -1,5 +1,4 @@
 FROM python:3.8.3
-MAINTAINER driesdeja@gmail.com
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -11,15 +10,10 @@ RUN python -m pip install --upgrade pip
 
 RUN  pip install pipenv
 
-COPY ./Pipfile.lock /ladder/Pipfile.lock
+COPY . /ladder/
 
 WORKDIR /ladder
 
-RUN pwd
-
 RUN pipenv install --system --deploy --ignore-pipfile
 
-
-
-# COPY ./requirements.txt .
 
