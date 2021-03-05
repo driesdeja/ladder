@@ -145,3 +145,4 @@ downloads/
 data/
 db-data/
 .env.dev
+.vscode/
