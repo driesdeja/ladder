@@ -9,5 +9,6 @@ class PlayerForm(forms.ModelForm):
             'first_name',
             'last_name',
             'contact_number',
+            'status',
             'ranking'
         ]

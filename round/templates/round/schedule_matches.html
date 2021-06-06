@@ -12,7 +12,7 @@
             <div class="col-8">
                 {% for day in schedule.match_days|as_list:',' %}
                     <div class="match-day">
-                        <h2>{{ day|date_for_day_of_year:2020|date:'l j F, Y' }}</h2>
+                        <h2>{{ day|date_for_day_of_year:ladder_round_year|date:'l j F, Y' }}</h2>
 
                         <div id="time-slots">
                             {% for time in schedule.number_of_timeslots|times %}
