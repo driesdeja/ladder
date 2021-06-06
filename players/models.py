@@ -1,4 +1,5 @@
 from django.db import models
+from players.signals import player_status_changed
 
 
 class Player(models.Model):
@@ -19,6 +20,19 @@ class Player(models.Model):
     ranking = models.IntegerField(default=0)
     email = models.EmailField(blank=True)
     status = models.IntegerField(choices=Status, default=ACTIVE)
+
+    def __init__(self, *args, **kwargs):
+        super(Player, self).__init__(*args, **kwargs)
+        self.__original_status = self.status
+
+    
+
+    def save(self, *args, **kwargs):
+        if self.status != self.__original_status:
+            player_status_changed.send(sender=self, player=self, original_status=self.__original_status)
+        super().save(*args, **kwargs)
+    
+    
     class Meta:
         ordering = ['last_name']
 
@@ -32,3 +46,4 @@ class PlayerStatus(models.Model):
     from_date = models.DateTimeField()
     to_date = models.DateTimeField(null=True)
     updated_date = models.DateTimeField(auto_now=True)
+

@@ -27,6 +27,15 @@
                    value="{{ player.contact_number }}">
         </div>
         <div class="fieldWrapper">
+            {{ form.status.errors }}
+            <label for="id_status">Status {{ player.status}}</label>
+            <select required name='status' id="id_status">
+                <option value="0" {% if player.status == 0 %} selected {% endif %}>Active</option>
+                <option value="1" {% if player.status == 1 %} selected {% endif %}>Inactive</option>
+                <option value="2" {% if player.status == 2 %} selected {% endif %}>Disabled</option>
+            </select>
+        </div>
+        <div class="fieldWrapper">
             {{ form.ranking.errors }}
             <label for="id_ranking">Ranking</label>
             <input type="number" name="ranking" value="{{ player.ranking }}" required id="id_ranking">

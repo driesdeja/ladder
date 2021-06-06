@@ -15,6 +15,7 @@
                 <th scope="col">First</th>
                 <th scope="col">Last</th>
                 <th scope="col">Contact Number</th>
+                <th scope="col">Status</th>
                 {% if perms.players.add_player %}
                     <th scope="col">Edit</th>
                 {% endif %}
@@ -37,6 +38,7 @@
                     ###########
                 {% endif %}
             </td>
+            <td>{{ player.get_status_display }} </td>
             {% if perms.players.add_player %}
                 <td>
                     <a href="{% url 'edit-player' player.id %}">Edit</a>

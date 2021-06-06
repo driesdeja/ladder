@@ -483,8 +483,7 @@ def ladder_overview(request):
     full_ladder_details = None
 
     if Ladder.objects.filter(status=Ladder.OPEN).exists():
-        open_ladder = Ladder.objects.get(status=Ladder.OPEN)
-
+        open_ladder = Ladder.objects.filter(status=Ladder.OPEN).first()
         ladder_rounds = LadderRound.objects.filter(ladder=open_ladder, status__in=[LadderRound.OPEN, LadderRound.COMPLETED, LadderRound.CLOSED]).order_by('start_date')
 
         full_ladder_details = get_full_ladder_details(open_ladder)
@@ -544,12 +543,14 @@ def schedule_matches(request, round_id):
         save_scheduled_matches(ladder_round, scheduled_matches)
 
         print(scheduled_matches)
-
+    # setup the year for the round
+    ladder_round_year = ladder_round.start_date.year
     context = {
         'ladder_round': ladder_round,
         'matches': non_scheduled_matches,
         'schedule': schedule,
-        'saved_matches_schedule': saved_matches_schedule
+        'saved_matches_schedule': saved_matches_schedule,
+        'ladder_round_year': ladder_round_year
     }
     return render(request, 'round/schedule_matches.html', context)
 
@@ -660,6 +661,7 @@ def save_scheduled_match_view(request, round_id):
             match_time = request.POST.get("match_time")
             match_day = request.POST.get("match_day")
             court = request.POST.get("court")
+            #todo:  I hate this and need to find another way to do this
             try:
                 scheduled_match = MatchSchedule.objects.get(match_id=match_id)
                 scheduled_match.delete()

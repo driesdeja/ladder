@@ -33,6 +33,7 @@ def edit_player(request, player_id):
             player.contact_number = form.cleaned_data.get('contact_number')
             if player.ranking != form.cleaned_data.get('ranking'):
                 update_ladder_ranking(player, 'change', form.cleaned_data.get('ranking'))
+            player.status = form.cleaned_data.get('status')
             player.ranking = form.cleaned_data.get('ranking')
             player.save()
         return redirect(list_players)

@@ -1,17 +1,20 @@
+"""
+Utility class for the players module
+"""
 import csv
 import os
 import json
 import io
-from io import TextIOWrapper
-from .models import Player
+from datetime import timedelta
 from django.conf import settings
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, Image, Spacer
 from reportlab.platypus.tables import TableStyle
-
+from .models import Player, PlayerStatus
 
 def get_file_of_players():
+    """Create a file containing all of the players."""
     file_name = 'players.csv'
     file_path = os.path.join(settings.DOWNLOAD_ROOT, file_name)
     with open(file_path, 'w') as csv_file:
@@ -33,8 +36,7 @@ def get_file_of_players():
 
 
 def extract_players_from_file(players_file):
-    fieldnames = ['ranking', 'first_name', 'last_name', 'email', 'contact_number']
-
+    """Extract players from the file."""
     reader = csv.DictReader(players_file)
     players = []
     for row in reader:
@@ -43,6 +45,7 @@ def extract_players_from_file(players_file):
 
 
 def save_players(players):
+    """Save Players."""
     players_as_json = json.loads(players)
     for player in players_as_json:
         Player.objects.create(ranking=player['ranking'],
@@ -54,7 +57,7 @@ def save_players(players):
 
 
 def get_pdf_file(data_to_download):
-
+    """Get PDF File."""
     players = Player.objects.all().order_by('ranking')
     player_list = []
     for each_player in players:
@@ -111,6 +114,7 @@ def get_pdf_file(data_to_download):
 
 
 def get_player_list():
+    """Get player list."""
     players = Player.objects.all().order_by('ranking')
     player_list = []
     for each_player in players:
@@ -120,3 +124,12 @@ def get_player_list():
                             each_player.email,
                             each_player.contact_number])
     return player_list
+
+
+def update_player_status(player, from_date):
+    """Update player status."""
+    player_status = PlayerStatus.objects.get(player=player, to_date__is_null=True)
+    if player_status:
+        if from_date:
+            player_status.to_date = from_date - timedelta(days=1)
+            player_status.save()
