@@ -83,7 +83,7 @@ def import_players(request):
             players_file = TextIOWrapper(request.FILES['file'])
             players = extract_players_from_file(players_file)
         elif request.POST.get('cancel'):
-            messages.warning(request, f'Player import cancelled!')
+            messages.warning(request, 'Player import cancelled!')
             players = None
             redirect(import_players)
         elif request.POST.get('save'):

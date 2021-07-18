@@ -207,7 +207,7 @@ def round_detail(request, round_id):
 
 def manage_players_in_round(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
-    players = Player.objects.all()
+    players = Player.objects.all().filter(status=Player.ACTIVE)
     players_in_round = get_players_in_round(ladder_round)
     players_not_in_round = []
     for player in players:
@@ -487,7 +487,7 @@ def ladder_overview(request):
         ladder_rounds = LadderRound.objects.filter(ladder=open_ladder, status__in=[LadderRound.OPEN, LadderRound.COMPLETED, LadderRound.CLOSED]).order_by('start_date')
 
         full_ladder_details = get_full_ladder_details(open_ladder)
-    players = Player.objects.all().order_by('ranking')
+    players = Player.objects.filter(status=Player.ACTIVE).order_by('-ranking')
     context = {
         'ladder': open_ladder,
         'ladder_rounds': ladder_rounds,
@@ -719,7 +719,7 @@ def ladder_setup_wizard(request):
         try:
             ladder_rounds = validate_and_create_ladder_rounds(ladder, number_of_rounds, first_round_start_date, duration_of_round)
         except ValueError as error:
-            messages.error(f'Ladder rounds are invalid: {error}')
+            messages.error(request, f'Ladder rounds are invalid: {error}')
             return redirect(ladder_setup_wizard)
         # Round schedule setup
         set_up_schedule = request.POST.get('schedule_select')
@@ -755,7 +755,7 @@ def ladder_setup_wizard(request):
 
         return redirect(ladder_admin)
 
-    players = Player.objects.all().order_by('ranking')
+    players = Player.objects.all().filter(status=Player.ACTIVE).order_by('ranking')
     context = {
         'players': players
     }

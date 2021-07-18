@@ -30,7 +30,7 @@ def get_players_in_round(ladder_round):
 
 def get_players_not_in_round(players_in_round):
     """ Return all the players not in an round. """
-    players = Player.objects.all()
+    players = Player.objects.filter(status=Player.ACTIVE)
     players_not_in_round = []
     for player in players:
         if player not in players_in_round:
@@ -123,10 +123,10 @@ def update_ladder_ranking(player, action, new_ranking):
         today = datetime.now()
         # If the new player's ranking in 0 then we add him to the end of the ranking list)
         if new_ranking == 0:
-            players = Player.objects.all()
+            players = Player.objects.filter(Player.ACTIVE)
             player.ranking = len(players)
         else:
-            players = Player.objects.filter(ranking__gte=new_ranking).order_by('ranking')
+            players = Player.objects.filter(status=Player.ACTIVE).filter(ranking__gte=new_ranking).order_by('ranking')
             player.ranking = new_ranking
             for each_player in players:
                 each_player.ranking = each_player.ranking + 1
@@ -148,7 +148,7 @@ def update_ladder_ranking(player, action, new_ranking):
             player.save()
             ranking.save()
     if action == 'delete':
-        players = Player.objects.filter(ranking__gt=player.ranking).order_by('ranking')
+        players = Player.objects.filter(status=Player.ACTIVE).filter(ranking__gt=player.ranking).order_by('ranking')
         for each_player in players:
             each_player.ranking = each_player.ranking - 1
             each_player.save()
@@ -156,7 +156,7 @@ def update_ladder_ranking(player, action, new_ranking):
         if new_ranking <= 0:
             new_ranking = 1
         if player.ranking > new_ranking:
-            players = Player.objects.filter(
+            players = Player.objects.filter(status=Player.ACTIVE).filter(
                 ranking__gte=new_ranking).filter(
                     ranking__lt=player.ranking)
             for each_player in players:
@@ -167,7 +167,7 @@ def update_ladder_ranking(player, action, new_ranking):
         else:
             if player.ranking < new_ranking:
                 if player.ranking != 0:
-                    players = Player.objects.filter(
+                    players = Player.objects.filter(status=Player.ACTIVE).filter(
                         ranking__gt=player.ranking).filter(ranking__lte=new_ranking)
                     for each_player in players:
                         each_player.ranking = each_player.ranking - 1
@@ -177,7 +177,7 @@ def update_ladder_ranking(player, action, new_ranking):
                     player.ranking = new_ranking
                     player.save()
                 else:
-                    players = Player.objects.filter(ranking__gte=new_ranking).order_by('ranking')
+                    players = Player.objects.filter(status=Player.ACTIVE).filter(ranking__gte=new_ranking).order_by('ranking')
                     for each_player in players:
                         each_player.ranking = each_player.ranking + 1
                         each_player.save()
@@ -249,7 +249,7 @@ def activate_and_invalidate_ranking(ranking):
 
 def compare_and_update_player_with_playerranking(reason_for_change):
     """Compare and update player with the player ranking."""
-    players = Player.objects.all()
+    players = Player.objects.filter(status=Player.ACTIVE)
     for player in players:
         player_ranking = PlayerRanking.objects.filter(player=player, eff_to__isnull=True).first()
         now = datetime.now()
@@ -379,7 +379,7 @@ def get_full_ladder_details(ladder):
             LadderRound.CLOSED,
             LadderRound.COMPLETED
             ]).order_by('start_date')
-    all_players = list(Player.objects.all().order_by('ranking'))
+    all_players = list(Player.objects.filter(status=Player.ACTIVE).order_by('ranking'))
     for each_player in all_players:
         player_matches = matches_player_played_in(each_player, ladder)
         rounds_player_had_matches = []
@@ -441,15 +441,16 @@ def create_match_schedule_with_round_match_schedule(ladder_round, round_match_sc
         year = ladder_round.start_date.year
         day_of_year = datetime(year, 1, 1) + timedelta(int(each_day) - 1)
         start_time = round_match_schedule.start_time
-        for each_time in range(round_match_schedule.number_of_timeslots):
+        i = 0
+        while (i < round_match_schedule.number_of_timeslots):
             for each_court in range(round_match_schedule.number_of_courts):
                 match_schedule = MatchSchedule.objects.create(day=day_of_year,
                                                               court=each_court + 1,
                                                               time_slot=start_time,
                                                               ladder_round=ladder_round)
-                print(f'match_Schedule: {match_schedule}')
                 match_schedule.save()
             start_time = add_minutes(start_time, round_match_schedule.time_interval)
+            i = i+1
 
 
 def get_number_of_timeslots(start_time, end_time, time_interval):
@@ -569,8 +570,6 @@ def validate_and_create_ladder_rounds(ladder,
                             first_round_start_date,
                             duration_of_round):
     """Validate and create the ladder rounds"""
-    print(f'{type(ladder.start_date)}')
-    print(f'{type(first_round_start_date)}')
     try:
         if first_round_start_date:
             start_date = first_round_start_date
@@ -594,7 +593,8 @@ def validate_and_create_ladder_rounds(ladder,
             print(f'Number of rounds: {number_of_rounds}')
         ladder_rounds = []
 
-        for i in range(number_of_rounds):
+        i = 0
+        while (i < number_of_rounds):
             end_date = get_round_end_date(start_date, duration_of_round)
             ladder_round = LadderRound(
                 ladder=ladder,
@@ -604,10 +604,13 @@ def validate_and_create_ladder_rounds(ladder,
             ladder_round.save()
             ladder_rounds.append(ladder_round)
             start_date = end_date + timedelta(days=1)
+            i=i+1
 
         return ladder_rounds
     except ValueError as error:
-        raise error
+        raise ValueError (
+            f'Error occurred during the validation and creation of the LadderRounds {error}'
+        )
 
 
 def get_round_end_date(start_date, duration_of_round):
