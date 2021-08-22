@@ -13,7 +13,7 @@ class Player(models.Model):
         (DISABLED, 'Disabled')
     ]
     
-    
+    id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     contact_number = models.CharField(max_length=30)
@@ -41,6 +41,7 @@ class Player(models.Model):
 
 
 class PlayerStatus(models.Model):
+    id = models.AutoField(primary_key=True)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     status = models.IntegerField()
     from_date = models.DateTimeField()

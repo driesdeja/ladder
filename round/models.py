@@ -17,6 +17,8 @@ class Ladder(models.Model):
         (COMPLETED, 'Completed'),
         (CANCELLED, 'Cancelled')
     )
+
+    id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=101, unique=True)
     start_date = models.DateField(null=True)
     end_date = models.DateField(null=True, blank=True)
@@ -44,6 +46,7 @@ class RoundMatchSchedule(models.Model):
         (SIXTY_MINUTES, '60 min')
     ]
 
+    id = models.AutoField(primary_key=True)
     match_days = models.TextField()
     number_of_courts = models.IntegerField()
     number_of_timeslots = models.IntegerField(default=0)
@@ -74,6 +77,7 @@ class LadderRound(models.Model):
         (CANCELLED, 'Cancelled')
     ]
 
+    id = models.AutoField(primary_key=True)
     start_date = models.DateField(null=True)
     end_date = models.DateField(null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
@@ -83,6 +87,7 @@ class LadderRound(models.Model):
 
 
 class PlayersInLadderRound(models.Model):
+    id = models.AutoField(primary_key=True)
     player = models.ForeignKey(player_models.Player, on_delete=models.CASCADE)
     ladder_round = models.ForeignKey(LadderRound, on_delete=models.CASCADE)
     ranking = models.IntegerField(default=0)
@@ -108,6 +113,7 @@ class MatchResult(models.Model):
         (CANCELLED, 'Cancelled')
     ]
 
+    id = models.AutoField(primary_key=True)
     result = models.IntegerField(choices=Result, default=NOT_PLAYED)
 
     def __str__(self):
@@ -131,6 +137,7 @@ class Match(models.Model):
         (CANCELLED, 'Cancelled')
     ]
 
+    id = models.AutoField(primary_key=True)
     ladder_round = models.ForeignKey(LadderRound, on_delete=models.CASCADE)
     player1 = models.ForeignKey(player_models.Player, on_delete=models.PROTECT, related_name='player_1')
     player2 = models.ForeignKey(player_models.Player, on_delete=models.PROTECT, related_name='player_2')
@@ -150,6 +157,7 @@ class Match(models.Model):
 
 
 class PlayerRanking(models.Model):
+    id = models.AutoField(primary_key=True)
     player = models.ForeignKey(player_models.Player, on_delete=models.PROTECT)
     ranking = models.IntegerField(default=0)
     eff_from = models.DateTimeField()
@@ -171,6 +179,7 @@ class MatchSchedule(models.Model):
         (CLOSED, 'Closed')
     ]
 
+    id = models.AutoField(primary_key=True)
     day = models.DateField(default=now)
     court = models.IntegerField(default=1)
     time_slot = models.TimeField()

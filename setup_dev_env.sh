@@ -16,4 +16,4 @@ export SQL_PASSWORD=ladder_user_password
 export SQL_HOST=localhost
 export SQL_PORT=5432
 
-echo "The develpment environment has been set up!"
+echo "The development environment has been set up!"
