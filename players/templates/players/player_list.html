@@ -51,3 +51,14 @@
         </table>
     </div>
 {% endblock content %}
+{% block javascript %}
+
+<script type="application/javascript">
+    $(document).ready(function(){
+        $("#toggle-active").click(function(){
+            $("#active-form").submit();
+        })
+    })
+    
+</script>
+{% endblock javascript %}

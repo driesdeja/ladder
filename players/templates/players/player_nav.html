@@ -4,4 +4,11 @@
     <a href="{% url 'reset-rankings' %}">Reset Ranking</a>
     <a href="{% url 'export-players' %}">Export Player List(csv)</a>
     <a href="{% url 'download-players' %}">Download Player List(pdf)</a>
+    <form id="active-form" method=POST action="{% url 'list-players' %}">
+        <div class="custom-control custom-switch">
+            {% csrf_token %}
+            <input type="checkbox" class="custom-control-input" id="toggle-active" name="toggle-active" {% if all_players %} checked {% endif %}>
+            <label class="custom-control-label" for="toggle-active">Toggle Active Players</label>
+        </div>
+    </form>
 </div>

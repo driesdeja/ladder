@@ -15,9 +15,20 @@ from .utils import get_file_of_players, \
 
 
 def list_players(request):
+    if request.POST:
+        if request.POST.get("toggle-active"):
+            players = Player.objects.all().order_by('ranking')
+            all_players = True
+        else:
+            players = Player.objects.filter(status=Player.ACTIVE).order_by('ranking')
+            all_players = False
+    else:
+        players = Player.objects.filter(status=Player.ACTIVE).order_by('ranking')
+        all_players = False
     context = {
         'title': 'Player List',
-        'players': Player.objects.all().order_by('ranking')
+        'players': players,
+        'all_players': all_players
     }
     return render(request, 'players/player_list.html', context)
 
@@ -65,7 +76,7 @@ def create_player(request):
 
 @login_required()
 def reset_rankings(request):
-    players = Player.objects.all().order_by('ranking')
+    players = Player.objects.filter(status=Player.ACTIVE).order_by('ranking')
     for idx, player in enumerate(players):
         # old_ranking = player.ranking
         player.ranking = idx + 1

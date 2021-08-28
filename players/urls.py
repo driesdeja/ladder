@@ -8,6 +8,7 @@ urlpatterns = [
     path('administration/import-players', views.import_players, name='import-players'),
     path('administration/export-players', views.export_players, name='export-players'),
     path('administration/download-player-list', views.download_players, name='download-players'),
+    path('players/', views.list_players, name='list-players'),
     path('', views.list_players, name='list-players'),
 
 ]
