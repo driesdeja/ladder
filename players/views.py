@@ -1,12 +1,15 @@
+
 from io import TextIOWrapper
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
+from django.http import HttpResponse
+from round.utils import update_ladder_ranking
 from .models import Player
 from .forms import PlayerForm
-from round.utils import update_ladder_ranking
-from django.http import HttpResponse
+
+
 from .utils import get_file_of_players, \
     extract_players_from_file, \
     save_players, \
