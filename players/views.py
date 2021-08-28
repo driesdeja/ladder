@@ -1,4 +1,4 @@
-
+"""Player views"""
 from io import TextIOWrapper
 from django.shortcuts import render
 from django.shortcuts import redirect
@@ -18,6 +18,7 @@ from .utils import get_file_of_players, \
 
 
 def list_players(request):
+    """Builds a list of players, either all or only Active players"""
     if request.POST:
         if request.POST.get("toggle-active"):
             players = Player.objects.all().order_by('ranking')
@@ -38,6 +39,7 @@ def list_players(request):
 
 @login_required()
 def edit_player(request, player_id):
+    """view to edit players"""
     form = PlayerForm(request.POST or None)
     player = Player.objects.get(id=player_id)
     if request.POST:
@@ -61,6 +63,7 @@ def edit_player(request, player_id):
 
 @login_required()
 def create_player(request):
+    """View to create a player"""
     form = PlayerForm(request.POST or None)
     if request.POST:
         if form.is_valid():
@@ -79,6 +82,7 @@ def create_player(request):
 
 @login_required()
 def reset_rankings(request):
+    """Utility view to reset all rankings"""
     players = Player.objects.filter(status=Player.ACTIVE).order_by('ranking')
     for idx, player in enumerate(players):
         # old_ranking = player.ranking
@@ -91,6 +95,7 @@ def reset_rankings(request):
 
 @permission_required('players.add_player')
 def import_players(request):
+    """View to import players"""
     players = []
     if request.POST:
         if request.POST.get('import'):
@@ -115,6 +120,7 @@ def import_players(request):
 
 @permission_required('players.add_player')
 def export_players(request):
+    """View to export players"""
     filename = 'players.csv'
     file_to_download = get_file_of_players()
     with open(file_to_download) as file_to_download:
@@ -124,7 +130,7 @@ def export_players(request):
 
 
 def download_players(request):
-
+    """View to download players in a pdf file"""
     filename = 'player_list.pdf'
     pdf_file = get_pdf_file('player_list')
     response = HttpResponse(pdf_file, content_type='application/pdf')
