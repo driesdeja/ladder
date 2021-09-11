@@ -2,13 +2,12 @@
 Testing files
 """
 from django.test import TestCase
-from datetime import date, datetime, timedelta, time
+from datetime import date, datetime, timedelta
 from players.models import Player
 from .models import PlayersInLadderRound
 from .models import Ladder
 from .models import LadderRound
 from .models import Match
-from .models import MatchResult
 from .models import RoundMatchSchedule
 from .models import MatchSchedule
 from .utils import add_player_to_round
@@ -20,7 +19,7 @@ from .utils import date_range
 from .utils import add_intervals_to_start_time
 from .utils import get_number_of_timeslots
 from .utils import create_match_schedule_with_round_match_schedule
-from .utils import validate_and_create_ladder_roundpipepip
+from .utils import validate_and_create_ladder_round
 from .utils import date_for_day_of_the_year
 from .utils import save_scheduled_matches
 from .utils import validate_and_create_ladder_rounds
@@ -302,22 +301,11 @@ class RoundUtilsTestCase(TestCase):
         # for player in players:
         #     print(f'{player.first_name} ranking: {player.ranking}')
 
-    # Not sure if capture match should be tested.  The important issue was the order in which the matches were
-    # to be processed as that will influence ranking.  This has been resolved by using order_by on the Match model to
-    # ensure that the Matches are always processed from the highest ranked player to the lowest rank.
-    # that might be something to test that the ranking results are predictable.
-    def test_capture_match_results(self):
-        matches = Match.objects.all()
-        for match in matches:
-            print(match)
-        self.assertTrue(True)
-
     def test_get_full_ladder_details(self):
         # add additional LadderRounds
         # create one that started a week ago
 
         ladder = Ladder.objects.all().first()
-        ladder_rounds = list(LadderRound.objects.all().filter(ladder=ladder))
         ladder_details = get_full_ladder_details(ladder)
         print(ladder_details)
 

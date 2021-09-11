@@ -1,42 +1,61 @@
+"""
+Views
+"""
+
+import json
+from datetime import date, datetime
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
-import json
-from django import forms
 from django.forms.models import model_to_dict
 from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponse
+from players.models import Player
+from players.views import list_players
+from round.utils import calculate_change_in_ranking, \
+    update_ladder_ranking, matches_player_played_in, date_range
 from .models import PlayersInLadderRound
 from .models import LadderRound
 from .models import Match
 from .models import Ladder
-from .models import Match
-from .models import MatchResult
 from .models import PlayerRanking
 from .models import MatchSchedule
-from .models import RoundMatchSchedule
-from datetime import date, datetime, timedelta
 from .forms import LadderForm, LadderRoundForm, MatchForm, LadderStatusForm
-from players.models import Player
-from .utils import validate_match_results, get_players_in_round, get_players_not_in_round, setup_matches_for_draw, \
-    add_player_to_round, compare_and_update_player_with_playerranking, get_full_ladder_details, \
-    remove_player_from_round, is_int, add_intervals_to_start_time, get_number_of_timeslots, \
-    create_match_schedule_with_round_match_schedule, validate_and_create_ladder_round, re_open_round, \
-    save_scheduled_matches, save_scheduled_match, validate_and_create_ladder_rounds, generate_round_match_schedule, \
-    validate_and_create_ladder, setup_match_days, close_ladder_round_draw
-from round.utils import calculate_change_in_ranking, update_ladder_ranking, matches_player_played_in, date_range
-from players.views import list_players
+
+from .utils import validate_match_results, \
+    get_players_in_round, \
+    get_players_not_in_round, \
+    setup_matches_for_draw, \
+    add_player_to_round, \
+    compare_and_update_player_with_playerranking, \
+    get_full_ladder_details, \
+    remove_player_from_round, \
+    create_match_schedule_with_round_match_schedule, \
+    validate_and_create_ladder_round, \
+    re_open_round, \
+    save_scheduled_matches, \
+    save_scheduled_match, \
+    validate_and_create_ladder_rounds, \
+    generate_round_match_schedule, \
+    validate_and_create_ladder, \
+    setup_match_days, \
+    close_ladder_round_draw
 from .reports import get_pdf_match_schedule
 
+
 def list_rounds(request):
+    """
+    List all the rounds
+    """
     # round_date = datetime.strptime('28 NOV 2019', '%d %b %Y')
 
     ladder_rounds = LadderRound.objects.all()
 
     ladder_rounds_with_players = []
     for entry in ladder_rounds:
-        ladder_round_with_players = {'ladder_round': entry, 'players': PlayersInLadderRound.objects.filter(
+        ladder_round_with_players = {'ladder_round': entry, \
+                                    'players': PlayersInLadderRound.objects.filter(
             ladder_round__date=entry.date)}
         ladder_rounds_with_players.append(ladder_round_with_players)
     context = {
@@ -461,10 +480,10 @@ def update_players_ranking(request, round_id):
             update_ladder_ranking(player, 'change', new_ranking, eff_date)
         ladder_round.status = ladder_round.COMPLETED
         ladder_round.save()
-        """ Need to update the ranking change log once all the movements for the rounds has been completed.
-            The way to do this is to loop through the rankings in the player list and compare that with the active
-            PlayerRanking for the player
-        """
+        # Need to update the ranking change log once all the movements for the rounds has been completed.
+        # The way to do this is to loop through the rankings in the player list and compare that with the active
+        # SPlayerRanking for the player
+        #
         compare_and_update_player_with_playerranking(f'Ladder round {ladder_round.start_date} updated on {eff_date}', ladder_round.end_date)
         
         return redirect(list_players)
@@ -562,7 +581,6 @@ def setup_scheduling_for_round(request, round_id):
     ladder_rounds = LadderRound.objects.filter(ladder=ladder)
     start_date = ladder_round.start_date
     end_date = ladder_round.end_date
-    delta = end_date - start_date
     days = date_range(start_date, end_date)
     if request.POST:
         if request.POST.get('generate-match-schedule'):
@@ -701,7 +719,6 @@ def ladder_setup_wizard(request):
 
 
         # Calculation Engine
-        calculation_method = request.POST.get('calculation')
         # todo: Implement the calculation selection.  Only one is currently implemented.
 
         # Rounds details
@@ -764,7 +781,7 @@ def ladder_setup_wizard(request):
 
 def download_match_schedule(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
-    filename = f'round_match_schedule.pdf'
+    filename = 'round_match_schedule.pdf'
     pdf_file = get_pdf_match_schedule(ladder_round)
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename=%s' % filename

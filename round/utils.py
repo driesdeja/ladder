@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 from django.db import IntegrityError
-from django.db.utils import DatabaseError
 
 from players.models import Player
 from .models import PlayersInLadderRound, \
@@ -126,7 +125,9 @@ def update_ladder_ranking(player, action, new_ranking, eff_date):
             players = Player.objects.filter(status=Player.ACTIVE)
             player.ranking = len(players)
         else:
-            players = Player.objects.filter(status=Player.ACTIVE).filter(ranking__gte=new_ranking).order_by('ranking')
+            players = Player.objects.filter(status=Player.ACTIVE)\
+                .filter(ranking__gte=new_ranking)\
+                .order_by('ranking')
             player.ranking = new_ranking
             for each_player in players:
                 each_player.ranking = each_player.ranking + 1
@@ -148,7 +149,8 @@ def update_ladder_ranking(player, action, new_ranking, eff_date):
             player.save()
             ranking.save()
     if action == 'delete':
-        players = Player.objects.filter(status=Player.ACTIVE).filter(ranking__gt=player.ranking).order_by('ranking')
+        players = Player.objects.filter(status=Player.ACTIVE)\
+            .filter(ranking__gt=player.ranking).order_by('ranking')
         for each_player in players:
             each_player.ranking = each_player.ranking - 1
             each_player.save()
@@ -170,9 +172,10 @@ def update_ladder_ranking(player, action, new_ranking, eff_date):
                     players = Player.objects.filter(status=Player.ACTIVE).filter(
                         ranking__gt=player.ranking).filter(ranking__lte=new_ranking)
                     if len(players):
-                        """This happens when it is the last player in the list and they lost. Then the list 
-                            of who are below them will be empty and they will then therefore remain at the ranking they are
-                        """
+                        #   This happens when it is the last player in the list and they lost.
+                        #   Then the list
+                        #   of who are below them will be empty and they will then therefore
+                        #   remain at the ranking they are
                         for each_player in players:
                             each_player.ranking = each_player.ranking - 1
                             each_player.save()
@@ -181,7 +184,8 @@ def update_ladder_ranking(player, action, new_ranking, eff_date):
                         player.ranking = new_ranking
                     player.save()
                 else:
-                    players = Player.objects.filter(status=Player.ACTIVE).filter(ranking__gte=new_ranking).order_by('ranking')
+                    players = Player.objects.filter(status=Player.ACTIVE)\
+                        .filter(ranking__gte=new_ranking).order_by('ranking')
                     for each_player in players:
                         each_player.ranking = each_player.ranking + 1
                         each_player.save()
@@ -254,7 +258,6 @@ def activate_and_invalidate_ranking(ranking, eff_to):
 
 def compare_and_update_player_with_playerranking(reason_for_change, effective_date):
     """Compare and update player with the player ranking."""
-    """ Need to think this through a bit more.  The date is today() that is just wrong!"""
     players = Player.objects.filter(status=Player.ACTIVE)
     for player in players:
         player_ranking = PlayerRanking.objects.filter(player=player, eff_to__isnull=True).first()
@@ -447,7 +450,7 @@ def create_match_schedule_with_round_match_schedule(ladder_round, round_match_sc
         day_of_year = datetime(year, 1, 1) + timedelta(int(each_day) - 1)
         start_time = round_match_schedule.start_time
         i = 0
-        while (i < round_match_schedule.number_of_timeslots):
+        while i < round_match_schedule.number_of_timeslots:
             for each_court in range(round_match_schedule.number_of_courts):
                 match_schedule = MatchSchedule.objects.create(day=day_of_year,
                                                               court=each_court + 1,
@@ -599,7 +602,7 @@ def validate_and_create_ladder_rounds(ladder,
         ladder_rounds = []
 
         i = 0
-        while (i < number_of_rounds):
+        while i < number_of_rounds:
             end_date = get_round_end_date(start_date, duration_of_round)
             ladder_round = LadderRound(
                 ladder=ladder,
