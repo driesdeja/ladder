@@ -454,19 +454,19 @@ def update_players_ranking(request, round_id):
     matches = Match.objects.filter(ladder_round=ladder_round)
     new_ranking_list = calculate_change_in_ranking(matches)
     if request.POST:
+        eff_date = request.POST.get("eff_date")
         for each_player in new_ranking_list:
             player = Player.objects.get(id=each_player['player_id'])
             new_ranking = player.ranking + int(each_player['player_ranking_change'])
-            update_ladder_ranking(player, 'change', new_ranking)
-        today = date.today()
-        ladder_round.end_date = today
+            update_ladder_ranking(player, 'change', new_ranking, eff_date)
         ladder_round.status = ladder_round.COMPLETED
         ladder_round.save()
         """ Need to update the ranking change log once all the movements for the rounds has been completed.
             The way to do this is to loop through the rankings in the player list and compare that with the active
             PlayerRanking for the player
         """
-        compare_and_update_player_with_playerranking(f'Ladder round {ladder_round.start_date} updated on {today}')
+        compare_and_update_player_with_playerranking(f'Ladder round {ladder_round.start_date} updated on {eff_date}', ladder_round.end_date)
+        
         return redirect(list_players)
 
     context = {

@@ -1,11 +1,30 @@
+"""
+Testing files
+"""
 from django.test import TestCase
 from datetime import date, datetime, timedelta, time
-from .models import PlayersInLadderRound, Ladder, LadderRound, Match, MatchResult, RoundMatchSchedule, MatchSchedule
 from players.models import Player
-from .utils import add_player_to_round, ensure_player_not_already_in_round, ranking_change, update_ladder_ranking, \
-    get_full_ladder_details, date_range, add_intervals_to_start_time, get_number_of_timeslots, \
-    create_match_schedule_with_round_match_schedule, validate_and_create_ladder_round, date_for_day_of_the_year, \
-    save_scheduled_matches, validate_and_create_ladder_rounds, setup_match_days
+from .models import PlayersInLadderRound
+from .models import Ladder
+from .models import LadderRound
+from .models import Match
+from .models import MatchResult
+from .models import RoundMatchSchedule
+from .models import MatchSchedule
+from .utils import add_player_to_round
+from .utils import ensure_player_not_already_in_round
+from .utils import ranking_change
+from .utils import update_ladder_ranking
+from .utils import get_full_ladder_details
+from .utils import date_range
+from .utils import add_intervals_to_start_time
+from .utils import get_number_of_timeslots
+from .utils import create_match_schedule_with_round_match_schedule
+from .utils import validate_and_create_ladder_round
+from .utils import date_for_day_of_the_year
+from .utils import save_scheduled_matches
+from .utils import validate_and_create_ladder_rounds
+from .utils import setup_match_days
 
 
 # Create your tests here.
@@ -21,16 +40,19 @@ class RoundUtilsTestCase(TestCase):
                                              ranking=4)
         self.player4 = Player.objects.create(first_name='Tinker', last_name='Bell', contact_number='021329015',
                                              ranking=5)
-        self.player5 = Player.objects.create(first_name='Peter', last_name='Pan', contact_number='021329015', ranking=6)
+        self.player5 = Player.objects.create(
+            first_name='Peter', last_name='Pan', contact_number='021329015', ranking=6)
         self.player6 = Player.objects.create(first_name='Lord', last_name='Farquaad', contact_number='021329015',
                                              ranking=2)
         self.player7 = Player.objects.create(first_name='Robin', last_name='Hood', contact_number='021329015',
                                              ranking=7)
-        self.player8 = Player.objects.create(first_name='Tom', last_name='Thumb', contact_number='021329015', ranking=8)
+        self.player8 = Player.objects.create(
+            first_name='Tom', last_name='Thumb', contact_number='021329015', ranking=8)
 
         self.list_of_players = Player.objects.all()
 
-        self.ladder = Ladder.objects.create(title='Fairy Tale Ladder', start_date=date.today())
+        self.ladder = Ladder.objects.create(
+            title='Fairy Tale Ladder', start_date=date.today())
 
         self.ladder_round = LadderRound.objects.create(start_date=date.today(),
                                                        end_date=date.today() + timedelta(days=7),
@@ -189,19 +211,24 @@ class RoundUtilsTestCase(TestCase):
         match4.save()
 
     def test_add_player_to_round(self):
-        add_player_to_round(self.ladder_round.id, Player.objects.get(first_name='Tom'))
-        player_in_round = PlayersInLadderRound.objects.get(player=Player.objects.get(first_name='Tom'))
+        add_player_to_round(self.ladder_round.id,
+                            Player.objects.get(first_name='Tom'))
+        player_in_round = PlayersInLadderRound.objects.get(
+            player=Player.objects.get(first_name='Tom'))
         self.assertIsNotNone(self, player_in_round)
 
     def test_ensure_player_not_already_in_round(self):
-        add_player_to_round(self.ladder_round.id, Player.objects.get(first_name='Tom'))
-        ensure_player_not_already_in_round(self.ladder_round, Player.objects.get(first_name='Tom'))
+        add_player_to_round(self.ladder_round.id,
+                            Player.objects.get(first_name='Tom'))
+        ensure_player_not_already_in_round(
+            self.ladder_round, Player.objects.get(first_name='Tom'))
         with self.assertRaises(PlayersInLadderRound.DoesNotExist):
-            PlayersInLadderRound.objects.get(player=Player.objects.get(first_name='Tom'))
+            PlayersInLadderRound.objects.get(
+                player=Player.objects.get(first_name='Tom'))
 
     def test_ranking_change(self):
-        self.assertEqual(ranking_change(3), -2)
-        self.assertEqual(ranking_change(2), -1)
+        self.assertEqual(ranking_change(3), -6)
+        self.assertEqual(ranking_change(2), -2)
         self.assertEqual(ranking_change(1), 0)
         self.assertEqual(ranking_change(0), 1)
         with self.assertRaises(ValueError):
@@ -211,39 +238,64 @@ class RoundUtilsTestCase(TestCase):
 
     def test_update_ladder_ranking(self):
         # Adding a new player to the list
-        new_player = Player.objects.create(first_name='Super', last_name='Man', contact_number='021329015', ranking=0)
-        update_ladder_ranking(new_player, 'add', 0)
-        players = Player.objects.all().order_by('ranking')
+        # Initial List of all Active Players:
+    
+        players = Player.objects.filter(status=Player.ACTIVE).order_by('ranking')
+        print(players)
+    
+        new_player = Player.objects.create(
+            first_name='Super', last_name='Man', contact_number='021329015', ranking=0)
+        update_ladder_ranking(new_player, 'add', 0, datetime.now())
+        players = Player.objects.filter(status=Player.ACTIVE).order_by('ranking')
         self.assertEqual(new_player.ranking, len(players))
-
-        # Peter won 3 games in his match, Position on ladder decreases by 2
-        peter = Player.objects.filter(first_name='Peter').first()
+        #New player created and added to the bottom of the ladder:
+        print(f'New player add: {new_player}, and should be at the bottom of the ladder')
+        print(players)
+        # Peter won 3 games in his match, Position on ladder decreases by 6
+        peter = Player.objects.get(first_name='Peter')
+        initial_ranking = peter.ranking
         new_ranking = peter.ranking + ranking_change(3)
-        update_ladder_ranking(peter, 'change', new_ranking)
-        self.assertEqual(peter.ranking, 4)
+        update_ladder_ranking(peter, 'change', new_ranking, datetime.now())
+        print(f'Player {peter}, won which implies that his ranking should be {new_ranking}, and his ranking is {peter.ranking} and it was {initial_ranking}')
+        players = Player.objects.filter(status=Player.ACTIVE).order_by('ranking')
+        print(players)
+        self.assertEqual(peter.ranking, 1)
 
         # Lord Farquaad won 2 games, so ranking position decreases by 1
-        lord = Player.objects.filter(first_name='Lord').first()
+        lord = Player.objects.get(first_name='Lord')
         new_ranking = lord.ranking + ranking_change(2)
         # print(new_ranking)
-        update_ladder_ranking(lord, 'change', new_ranking)
+        initial_ranking = lord.ranking
+        update_ladder_ranking(lord, 'change', new_ranking, datetime.now())
+        print(f'Player {lord}, won which implies that his ranking should be {new_ranking}, and his ranking is {lord.ranking} and it was {initial_ranking}')
+        players = Player.objects.filter(status=Player.ACTIVE).order_by('ranking')
+        print(players)
         self.assertEqual(lord.ranking, 1)
 
         # Mickey won 0 games, so ranking position increases by 1 (moves further away from 1)
         mickey = Player.objects.filter(first_name='Mickey').first()
+        initial_ranking = mickey.ranking
         new_ranking = mickey.ranking + ranking_change(0)
-        print(new_ranking)
-        update_ladder_ranking(mickey, 'change', new_ranking)
+        
+        update_ladder_ranking(mickey, 'change', new_ranking, datetime.now())
+        print(f'Player {mickey}, won which implies that his ranking should be {new_ranking}, and his ranking is {mickey.ranking} and it was {initial_ranking}')
+        players = Player.objects.filter(status=Player.ACTIVE).order_by('ranking')
+        print(players)
         self.assertEqual(mickey.ranking, 6)
 
-        update_ladder_ranking(lord, 'delete', None)
-        lord.delete()
-        self.assertEqual(Player.objects.get(first_name='Prince').ranking, 1)
+        update_ladder_ranking(lord, 'delete', None, datetime.now())
+        lord.status = Player.DISABLED
+        lord.save()
+        print(f'Set player {lord} to disables: {lord.status}')
+        players = Player.objects.filter(status=Player.ACTIVE).order_by('ranking')
+        print(players)
 
-        all_players = Player.objects.all().order_by('ranking')
+        players = Player.objects.filter(status=Player.ACTIVE).order_by('ranking')
 
+        self.assertEqual(players[0].first_name, "Super")
+        
         tinker = Player.objects.filter(first_name='Tinker').first()
-        update_ladder_ranking(tinker, 'change', len(all_players) + 100)
+        update_ladder_ranking(tinker, 'change', len(players) + 100, datetime.now())
 
         # Eyeball validation of the rules
         # players = Player.objects.all().order_by('ranking')
@@ -322,7 +374,6 @@ class RoundUtilsTestCase(TestCase):
         self.assertTrue(ladder_round.start_date == start_date)
         with self.assertRaises(ValueError):
             start_date = date.today() + timedelta(days=1)
-            end_date = start_date + timedelta(days=7)
             validate_and_create_ladder_round(self.ladder, start_date, end_date)
             start_date = date.today() - timedelta(days=7)
             end_date = start_date + timedelta(days=7)
@@ -393,6 +444,7 @@ class RoundUtilsTestCase(TestCase):
             title="Test Ladder",
             start_date=datetime.today().date(),
         )
+        ladder.save()
         # ten rounds, weekly, no end date
         number_of_rounds = 10
         first_round_start_date = ladder.start_date
@@ -406,6 +458,7 @@ class RoundUtilsTestCase(TestCase):
         number_of_rounds = None
         end_date = datetime.today() + timedelta(weeks=20)
         ladder.end_date = end_date.date()
+        ladder.save()
         duration_of_round = 'fortnightly'
         ladder_rounds = validate_and_create_ladder_rounds(ladder, number_of_rounds, first_round_start_date, duration_of_round)
         print(f'fortnightly, end_date 20 weeks later - ladder_rounds should be 10: {len(ladder_rounds)}')
@@ -417,6 +470,7 @@ class RoundUtilsTestCase(TestCase):
         duration_of_round = "monthly"
         end_date = datetime.today() + timedelta(weeks=52)
         ladder.end_date = end_date.date()
+        ladder.save()
         ladder_rounds = validate_and_create_ladder_rounds(ladder, number_of_rounds, first_round_start_date, duration_of_round)
         print(f'monthly, end_date 52 weeks - ladder_rounds should be 12: {len(ladder_rounds)}')
 

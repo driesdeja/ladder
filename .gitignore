@@ -146,3 +146,5 @@ data/
 db-data/
 .env.dev
 .vscode/
+*.code-workspace
+pytest.ini

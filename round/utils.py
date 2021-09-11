@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 from django.db import IntegrityError
+from django.db.utils import DatabaseError
 
 from players.models import Player
 from .models import PlayersInLadderRound, \
@@ -117,13 +118,12 @@ def remove_player_from_round(round_id, player):
     player_to_remove.delete()
 
 
-def update_ladder_ranking(player, action, new_ranking):
+def update_ladder_ranking(player, action, new_ranking, eff_date):
     """ his action only occurs when a player is added for the first time. """
     if action == 'add':
-        today = datetime.now()
         # If the new player's ranking in 0 then we add him to the end of the ranking list)
         if new_ranking == 0:
-            players = Player.objects.filter(Player.ACTIVE)
+            players = Player.objects.filter(status=Player.ACTIVE)
             player.ranking = len(players)
         else:
             players = Player.objects.filter(status=Player.ACTIVE).filter(ranking__gte=new_ranking).order_by('ranking')
@@ -134,8 +134,8 @@ def update_ladder_ranking(player, action, new_ranking):
                 each_player_ranking.player = each_player
                 each_player_ranking.ranking = each_player.ranking
                 each_player_ranking.reason_for_change = \
-                    f'{player.first_name} {player.last_name} added to the ladder {today}.'
-                if activate_and_invalidate_ranking(each_player_ranking):
+                    f'{player.first_name} {player.last_name} added to the ladder {eff_date}.'
+                if activate_and_invalidate_ranking(each_player_ranking, eff_date):
                     each_player_ranking.save()
                     each_player.save()
 
@@ -144,7 +144,7 @@ def update_ladder_ranking(player, action, new_ranking):
         ranking.player = player
         ranking.ranking = player.ranking
         ranking.reason_for_change = 'Initial creation of the the player'
-        if activate_and_invalidate_ranking(ranking):
+        if activate_and_invalidate_ranking(ranking, eff_date):
             player.save()
             ranking.save()
     if action == 'delete':
@@ -169,12 +169,16 @@ def update_ladder_ranking(player, action, new_ranking):
                 if player.ranking != 0:
                     players = Player.objects.filter(status=Player.ACTIVE).filter(
                         ranking__gt=player.ranking).filter(ranking__lte=new_ranking)
-                    for each_player in players:
-                        each_player.ranking = each_player.ranking - 1
-                        each_player.save()
-                    if new_ranking > players[len(players) - 1].ranking:
-                        new_ranking = players[len(players) - 1].ranking + 1
-                    player.ranking = new_ranking
+                    if len(players):
+                        """This happens when it is the last player in the list and they lost. Then the list 
+                            of who are below them will be empty and they will then therefore remain at the ranking they are
+                        """
+                        for each_player in players:
+                            each_player.ranking = each_player.ranking - 1
+                            each_player.save()
+                        if new_ranking > players[len(players) - 1].ranking:
+                            new_ranking = players[len(players) - 1].ranking + 1
+                        player.ranking = new_ranking
                     player.save()
                 else:
                     players = Player.objects.filter(status=Player.ACTIVE).filter(ranking__gte=new_ranking).order_by('ranking')
@@ -224,18 +228,19 @@ def calculate_change_in_ranking(matches):
     return new_ranking_list
 
 
-def activate_and_invalidate_ranking(ranking):
+def activate_and_invalidate_ranking(ranking, eff_to):
     """Acivate new ranking and deactivate the previous ranking."""
     try:
-        now = datetime.now()
+        if not isinstance(eff_to, datetime):
+            eff_to = datetime.now()
         # Find the currently active ranking
         current_ranking = PlayerRanking.objects.filter(
             player=ranking.player, eff_to__isnull=True).first()
         # If there is no previous PlayerRanking, only happens if it is a new player -
         # ranking will then be the first PlayerRanking
         if current_ranking:
-            current_ranking.eff_to = now
-        ranking.eff_from = now
+            current_ranking.eff_to = eff_to
+        ranking.eff_from = eff_to
     except ValueError as err:
         raise err
 
@@ -247,19 +252,19 @@ def activate_and_invalidate_ranking(ranking):
 
 
 
-def compare_and_update_player_with_playerranking(reason_for_change):
+def compare_and_update_player_with_playerranking(reason_for_change, effective_date):
     """Compare and update player with the player ranking."""
+    """ Need to think this through a bit more.  The date is today() that is just wrong!"""
     players = Player.objects.filter(status=Player.ACTIVE)
     for player in players:
         player_ranking = PlayerRanking.objects.filter(player=player, eff_to__isnull=True).first()
-        now = datetime.now()
         # if there is a record in PlayerRanking
         if player_ranking:
             if player.ranking != player_ranking.ranking:
                 new_player_ranking = PlayerRanking()
-                new_player_ranking.eff_from = now
+                new_player_ranking.eff_from = effective_date
                 new_player_ranking.ranking = player.ranking
-                player_ranking.eff_to = now
+                player_ranking.eff_to = effective_date
                 new_player_ranking.player = player_ranking.player
                 if len(reason_for_change) > 0:
                     new_player_ranking.reason_for_change = reason_for_change
@@ -270,7 +275,7 @@ def compare_and_update_player_with_playerranking(reason_for_change):
         # it is possible to create a new Player and not have a ranking in the PlayerRanking log
         else:
             player_ranking = PlayerRanking()
-            player_ranking.eff_from = now
+            player_ranking.eff_from = effective_date
             player_ranking.player = player
             player_ranking.reason_for_change = reason_for_change
             player_ranking.ranking = player.ranking
@@ -576,7 +581,7 @@ def validate_and_create_ladder_rounds(ladder,
         else:
             start_date = ladder.start_date
 
-        if number_of_rounds == "":
+        if number_of_rounds is None or number_of_rounds == "" :
             if ladder.end_date is None:
                 raise ValueError('The number_of_rounds OR the ladder.end_date must be set!')
             else:

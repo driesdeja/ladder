@@ -6,6 +6,7 @@
 
         <form method="post" action="{% url 'update-ranking' ladder_round.id %}">
             {% csrf_token %}
+            <input type="date" name="eff_date">
             <input type="submit" name="submit_to_master" value="Update Master List"/>
         </form>
         <table>
