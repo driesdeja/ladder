@@ -44,19 +44,20 @@ from .utils import validate_match_results, \
 from .reports import get_pdf_match_schedule
 
 
-def list_rounds(request):
+def list_rounds(request, ladder_id):
     """
-    List all the rounds
+    List all the rounds in a Ladder
     """
     # round_date = datetime.strptime('28 NOV 2019', '%d %b %Y')
+    ladder = Ladder.objects.get(id=ladder_id)
 
-    ladder_rounds = LadderRound.objects.all()
+    ladder_rounds = LadderRound.objects.filter(ladder=ladder)
 
     ladder_rounds_with_players = []
     for entry in ladder_rounds:
-        ladder_round_with_players = {'ladder_round': entry, \
-                                    'players': PlayersInLadderRound.objects.filter(
-            ladder_round__date=entry.date)}
+        ladder_round_with_players = {'ladder_round': entry,
+                                     'players': PlayersInLadderRound.objects.filter(
+                                         ladder_round__date=entry.date)}
         ladder_rounds_with_players.append(ladder_round_with_players)
     context = {
         'ladder_rounds': ladder_rounds_with_players
@@ -64,8 +65,12 @@ def list_rounds(request):
     return render(request, 'round/round.html', context)
 
 
-def ladder_draw(request):
-    draw = Match.objects.all()
+def ladder_draw(request, round_id):
+    """
+    view to display the draw (Matches) in a LadderRound
+    """
+    ladder_round = LadderRound.objects.get(id=round_id)
+    draw = Match.objects.filter(ladder_round=ladder_round)
     context = {
         'ladder_round_date': draw
     }
@@ -73,6 +78,9 @@ def ladder_draw(request):
 
 
 def ladder_admin(request):
+    """
+    Not sure what this does...Looks like it serves the form to create a Ladder?
+    """
     form = LadderForm(request.POST or None)
     if form.is_valid():
         form.save()
@@ -86,9 +94,14 @@ def ladder_admin(request):
 
 
 def ladder_detail(request, ladder_id):
+    """
+    View to service the basic maintanance of the ladder.
+    This would be to add a round or close the ladder.
+    """
     form = LadderRoundForm(request.POST or None)
     ladder = Ladder.objects.get(id=ladder_id)
-    rounds = list(LadderRound.objects.filter(ladder=ladder).order_by('start_date'))
+    rounds = list(LadderRound.objects.filter(
+        ladder=ladder).order_by('start_date'))
     if request.POST:
         if request.POST.get("add_round"):
             if form.is_valid():
@@ -136,9 +149,18 @@ def ladder_detail(request, ladder_id):
 
 
 def round_detail(request, round_id):
+    """
+    Supports the following POST requests:
+    copy_players,
+    leave_round,
+    enter_round,
+    capture-match-results
+    reset-match-results
+    """
     ladder_round = LadderRound.objects.get(id=round_id)
     players = get_players_in_round(ladder_round)
-    scheduled_matches = MatchSchedule.objects.filter(ladder_round=ladder_round).order_by('time_grid_location')
+    scheduled_matches = MatchSchedule.objects.filter(
+        ladder_round=ladder_round).order_by('time_grid_location')
     round_match_schedule = ladder_round.match_schedule
     matches = Match.objects.filter(ladder_round=ladder_round)
 
@@ -168,9 +190,11 @@ def round_detail(request, round_id):
         if request.POST.get('player2-defaulted'):
             match.result = match.PLAYER_2_DEFAULTED
         if request.POST.get('games-for-player1'):
-            match.games_for_player1 = int(request.POST.get('games-for-player1'))
+            match.games_for_player1 = int(
+                request.POST.get('games-for-player1'))
         if request.POST.get('games-for-player2'):
-            match.games_for_player2 = int(request.POST.get('games-for-player2'))
+            match.games_for_player2 = int(
+                request.POST.get('games-for-player2'))
         if request.POST.get('date-played'):
             date_str = request.POST.get('date-played')
             date_obj = datetime.strptime(date_str, '%Y-%m-%d')
@@ -203,13 +227,14 @@ def round_detail(request, round_id):
         match.date_played = None
         match.result = Match.NOT_PLAYED
         match.save()
-        messages.info(request, 'Match result has been reset, please re-capture!')
+        messages.info(
+            request, 'Match result has been reset, please re-capture!')
         return redirect(round_detail, round_id)
     previous_rounds = LadderRound.objects.filter(ladder=ladder_round.ladder,
-                                                 status__exact=LadderRound.COMPLETED).order_by('-start_date')
+                    status__exact=LadderRound.COMPLETED).order_by('-start_date')
     ladder_rounds = LadderRound.objects.filter(ladder=ladder_round.ladder,
-                                               status__in=[LadderRound.OPEN, LadderRound.CLOSED,
-                                                           LadderRound.COMPLETED]).order_by('start_date')
+                    status__in=[LadderRound.OPEN, LadderRound.CLOSED,
+                    LadderRound.COMPLETED]).order_by('start_date')
     ladder = ladder_round.ladder
     context = {
         'ladder': ladder,
@@ -225,8 +250,11 @@ def round_detail(request, round_id):
 
 
 def manage_players_in_round(request, round_id):
+    """
+    Create list of players in the round and not in the round.
+    """
     ladder_round = LadderRound.objects.get(id=round_id)
-    players = Player.objects.all().filter(status=Player.ACTIVE)
+    players = Player.objects.filter(status=Player.ACTIVE)
     players_in_round = get_players_in_round(ladder_round)
     players_not_in_round = []
     for player in players:
@@ -244,9 +272,13 @@ def manage_players_in_round(request, round_id):
 
 
 def add_players_to_round(request, round_id):
+    """
+    Manages adding players to the round.
+    """
     ladder_round = LadderRound.objects.get(id=round_id)
     ladder = ladder_round.ladder
-    ladder_rounds = LadderRound.objects.filter(ladder=ladder_round.ladder).order_by("start_date")
+    ladder_rounds = LadderRound.objects.filter(
+        ladder=ladder_round.ladder).order_by("start_date")
     previous_round = LadderRound.objects.filter(ladder=ladder).exclude(id=ladder_round.id).order_by(
         '-start_date').first()
     players_in_previous_round = get_players_in_round(previous_round)
@@ -263,7 +295,8 @@ def add_players_to_round(request, round_id):
         return redirect(round_draw, ladder_round.id)
     if request.POST.get('add_to_round[]'):
         if ladder_round.status > ladder_round.OPEN:
-            messages.error(request, 'The round is not open anymore, re-open the round if needed.')
+            messages.error(
+                request, 'The round is not open anymore, re-open the round if needed.')
         if not ladder_round.status == ladder_round.OPEN:
             ladder_round.status = ladder_round.OPEN
             ladder_round.save()
@@ -274,7 +307,8 @@ def add_players_to_round(request, round_id):
     if request.POST.get('remove_from_round[]'):
         players_to_remove = request.POST.getlist('remove_from_round[]')
         for player in players_to_remove:
-            player_to_remove = PlayersInLadderRound.objects.filter(player=player, ladder_round=ladder_round)
+            player_to_remove = PlayersInLadderRound.objects.filter(
+                player=player, ladder_round=ladder_round)
             if player_to_remove:
                 player_to_remove.delete()
         return redirect(add_players_to_round, round_id)
@@ -298,6 +332,9 @@ def add_players_to_round(request, round_id):
 
 
 def round_draw(request, round_id):
+    """
+    Creates the draw for the round and ensure that there are an even number of players
+    """
     ladder_round = LadderRound.objects.get(id=round_id)
     ladder_rounds = LadderRound.objects.filter(ladder=ladder_round.ladder)
     players = get_players_in_round(ladder_round)
@@ -306,7 +343,8 @@ def round_draw(request, round_id):
         matches = setup_matches_for_draw(ladder_round, players)
 
     if len(players) % 2 != 0:
-        messages.warning(request, 'The number of players in the draw is uneven, please add or remove someone')
+        messages.warning(
+            request, 'The number of players in the draw is uneven, please add or remove someone')
     context = {
         'ladder_round': ladder_round,
         'ladder_rounds': ladder_rounds,
@@ -318,10 +356,14 @@ def round_draw(request, round_id):
 
 @permission_required('round.ladder.can_administrate_the_ladder')
 def close_draw(request, round_id):
+    """
+    Closes the draw for the round.
+    """
     ladder_round = LadderRound.objects.get(id=round_id)
     if ladder_round.status < ladder_round.CLOSED:
         if LadderRound.objects.filter(status=ladder_round.CLOSED):
-            messages.error(request, 'Two rounds cannot be closed (in progress) at the same time')
+            messages.error(
+                request, 'Two rounds cannot be closed (in progress) at the same time')
         else:
             players = get_players_in_round(ladder_round)
             matches = Match.objects.filter(ladder_round=ladder_round)
@@ -336,6 +378,9 @@ def close_draw(request, round_id):
 
 @permission_required('round.ladder.can_administrate_the_ladder')
 def edit_draw(request, round_id):
+    """
+    Edit the ladder draw
+    """
     ladder_round = LadderRound.objects.get(id=round_id)
     players = get_players_in_round(ladder_round)
     if request.POST:
@@ -357,11 +402,17 @@ def edit_draw(request, round_id):
     }
     return render(request, 'round/edit-draw.html', context)
 
+
 @permission_required('round.ladder.can_administrate_the_ladder')
 def capture_results(request, round_id):
+    """
+    Capture results of the matches
+    """
     ladder_round = LadderRound.objects.get(id=round_id)
     if ladder_round.status < 2:
-        messages.warning(request, 'Draw is not yet finalised.  Please finalise the draw before capturing the results.')
+        messages.warning(
+            request,
+            'Draw is not yet finalised.  Please finalise the draw before capturing the results.')
     else:
         if request.POST:
             if request.POST.get('update_ranking'):
@@ -376,9 +427,11 @@ def capture_results(request, round_id):
                 for form_match in form_matches:
                     match = Match.objects.get(id=form_match)
                     if request.POST.get('match[' + form_match + '][player1-games]'):
-                        match.games_for_player1 = int(request.POST.get('match[' + form_match + '][player1-games]'))
+                        match.games_for_player1 = int(request.POST.get(
+                            'match[' + form_match + '][player1-games]'))
                     if request.POST.get('match[' + form_match + '][player2-games]'):
-                        match.games_for_player2 = int(request.POST.get('match[' + form_match + '][player2-games]'))
+                        match.games_for_player2 = int(request.POST.get(
+                            'match[' + form_match + '][player2-games]'))
                     if request.POST.get('match[' + form_match + '][player1-defaulted]'):
                         match.result = match.PLAYER_1_DEFAULTED
                     if request.POST.get('match[' + form_match + '][player2-defaulted]'):
@@ -386,7 +439,8 @@ def capture_results(request, round_id):
                     if request.POST.get('match[' + form_match + '][match-cancelled]'):
                         match.result = match.CANCELLED
                     if request.POST.get('match[' + form_match + '][date-played]'):
-                        date_str = request.POST.get('match[' + form_match + '][date-played]')
+                        date_str = request.POST.get(
+                            'match[' + form_match + '][date-played]')
                         date_obj = datetime.strptime(date_str, '%Y-%m-%d')
                         match.date_played = date_obj
                         match.date_played = datetime.strptime(
@@ -410,7 +464,8 @@ def capture_results(request, round_id):
                             messages.warning(request, error)
 
     matches = Match.objects.filter(ladder_round=ladder_round)
-    unplayed_matches = Match.objects.filter(ladder_round=ladder_round).filter(result__exact=0)
+    unplayed_matches = Match.objects.filter(
+        ladder_round=ladder_round).filter(result__exact=0)
     if len(unplayed_matches) == 0:
         all_matches_captured = True
     else:
@@ -424,12 +479,16 @@ def capture_results(request, round_id):
 
 
 def view_round_results(request, round_id):
+    """
+    Retrieve and display the results of the the round
+    """
     ladder_round = LadderRound.objects.get(id=round_id)
     ladder = ladder_round.ladder
     matches = Match.objects.filter(ladder_round=ladder_round)
     ladder_rounds = list(
         LadderRound.objects.filter(ladder__exact=ladder).filter(
-            status__in=[LadderRound.COMPLETED, LadderRound.CLOSED, LadderRound.OPEN]).order_by('start_date'))
+            status__in=[LadderRound.COMPLETED, LadderRound.CLOSED, LadderRound.OPEN])\
+                        .order_by('start_date'))
     context = {
         'ladder_round': ladder_round,
         'ladder_rounds': ladder_rounds,
@@ -440,6 +499,9 @@ def view_round_results(request, round_id):
 
 
 def edit_match(request, round_id, match_id):
+    """
+    Edit a specific match
+    """
     match = Match.objects.get(id=match_id)
     ladder_round = LadderRound.objects.get(id=round_id)
     if request.POST:
@@ -469,6 +531,9 @@ def edit_match(request, round_id, match_id):
 
 @permission_required('round.ladder.can_administrate_the_ladder')
 def update_players_ranking(request, round_id):
+    """
+    Manually update a players ranking
+    """
     ladder_round = LadderRound.objects.get(id=round_id)
     matches = Match.objects.filter(ladder_round=ladder_round)
     new_ranking_list = calculate_change_in_ranking(matches)
@@ -476,16 +541,20 @@ def update_players_ranking(request, round_id):
         eff_date = request.POST.get("eff_date")
         for each_player in new_ranking_list:
             player = Player.objects.get(id=each_player['player_id'])
-            new_ranking = player.ranking + int(each_player['player_ranking_change'])
+            new_ranking = player.ranking + \
+                int(each_player['player_ranking_change'])
             update_ladder_ranking(player, 'change', new_ranking, eff_date)
         ladder_round.status = ladder_round.COMPLETED
         ladder_round.save()
-        # Need to update the ranking change log once all the movements for the rounds has been completed.
-        # The way to do this is to loop through the rankings in the player list and compare that with the active
+        # Need to update the ranking change log once all the movements for the rounds has been
+        # completed.
+        # The way to do this is to loop through the rankings in the player list and compare
+        # that with the active
         # SPlayerRanking for the player
         #
-        compare_and_update_player_with_playerranking(f'Ladder round {ladder_round.start_date} updated on {eff_date}', ladder_round.end_date)
-        
+        compare_and_update_player_with_playerranking(
+            f'Ladder round {ladder_round.start_date} updated on {eff_date}', ladder_round.end_date)
+
         return redirect(list_players)
 
     context = {
@@ -497,13 +566,17 @@ def update_players_ranking(request, round_id):
 
 
 def ladder_overview(request):
+    """
+    Setup the details of the open ladder
+    """
     open_ladder = None
     ladder_rounds = None
     full_ladder_details = None
 
     if Ladder.objects.filter(status=Ladder.OPEN).exists():
         open_ladder = Ladder.objects.filter(status=Ladder.OPEN).first()
-        ladder_rounds = LadderRound.objects.filter(ladder=open_ladder, status__in=[LadderRound.OPEN, LadderRound.COMPLETED, LadderRound.CLOSED]).order_by('start_date')
+        ladder_rounds = LadderRound.objects.filter(ladder=open_ladder, status__in=[
+                LadderRound.OPEN, LadderRound.COMPLETED, LadderRound.CLOSED]).order_by('start_date')
 
         full_ladder_details = get_full_ladder_details(open_ladder)
     players = Player.objects.filter(status=Player.ACTIVE).order_by('-ranking')
@@ -517,8 +590,13 @@ def ladder_overview(request):
 
 
 def player_profile(request, player_id):
+    """
+    Retreive all of the details of a player,
+    as it relates to the matches played.
+    """
     player = Player.objects.get(id=player_id)
-    player_rankings = PlayerRanking.objects.filter(player=player).order_by('-last_updated')
+    player_rankings = PlayerRanking.objects.filter(
+        player=player).order_by('-last_updated')
     competed_in_rounds = PlayersInLadderRound.objects.filter(player=player)
 
     ladder_rounds_competed_in = []
@@ -526,7 +604,8 @@ def player_profile(request, player_id):
         ladder_rounds_competed_in.append(competed_in_round.ladder_round)
     ladders_competed_in = []
     for ladder_round in ladder_rounds_competed_in:
-        ladders_competed_in.append(Ladder.objects.get(id=ladder_round.ladder.id))
+        ladders_competed_in.append(
+            Ladder.objects.get(id=ladder_round.ladder.id))
     set_ladders = set(ladders_competed_in)
     ladders_competed_in = list(set_ladders)
     matches_played_in = []
@@ -545,16 +624,21 @@ def player_profile(request, player_id):
 
 @permission_required('round.ladder.can_administrate_the_ladder')
 def schedule_matches(request, round_id):
+    """
+    Scheduling of matches.
+    """
     ladder_round = LadderRound.objects.get(id=round_id)
     matches = Match.objects.filter(ladder_round=ladder_round)
     non_scheduled_matches = []
     for each_match in matches:
         if not MatchSchedule.objects.filter(match=each_match):
             non_scheduled_matches.append(each_match)
-    saved_matches_schedule = MatchSchedule.objects.filter(ladder_round=ladder_round)
+    saved_matches_schedule = MatchSchedule.objects.filter(
+        ladder_round=ladder_round)
     schedule = ladder_round.match_schedule
     if not schedule:
-        messages.error(request, 'Please setup a schedule before schedulding matches')
+        messages.error(
+            request, 'Please setup a schedule before schedulding matches')
         return redirect(setup_scheduling_for_round, ladder_round.id)
     if request.POST:
         scheduled_matches = json.loads(request.POST.get('scheduled-matches'))
@@ -576,6 +660,9 @@ def schedule_matches(request, round_id):
 
 @permission_required('round.ladder.can_administrate_the_ladder')
 def setup_scheduling_for_round(request, round_id):
+    """
+    Setup the scheduling for the round.  This can be complicated.
+    """
     ladder_round = LadderRound.objects.get(id=round_id)
     ladder = ladder_round.ladder
     ladder_rounds = LadderRound.objects.filter(ladder=ladder)
@@ -586,10 +673,12 @@ def setup_scheduling_for_round(request, round_id):
         if request.POST.get('generate-match-schedule'):
             match_days = request.POST.getlist('match-day[]')
             number_of_courts = int(request.POST.get('number-of-courts'))
-            start_time = datetime.strptime(request.POST.get('start-time'), '%H:%M').time()
+            start_time = datetime.strptime(
+                request.POST.get('start-time'), '%H:%M').time()
             time_interval = request.POST.get('time-interval')
             number_of_games = request.POST.get('number-of-games')
-            end_time = datetime.strptime(request.POST.get('end-time'), '%H:%M').time()
+            end_time = datetime.strptime(
+                request.POST.get('end-time'), '%H:%M').time()
 
             round_match_schedule = generate_round_match_schedule(match_days,
                                                                  number_of_courts,
@@ -600,10 +689,12 @@ def setup_scheduling_for_round(request, round_id):
 
             ladder_round.match_schedule = round_match_schedule
             ladder_round.save()
-            create_match_schedule_with_round_match_schedule(ladder_round, round_match_schedule)
+            create_match_schedule_with_round_match_schedule(
+                ladder_round, round_match_schedule)
             print(f'schedule: {round_match_schedule}')
         elif request.POST.get('reset-schedule'):
-            matches_schedule = MatchSchedule.objects.filter(ladder_round=ladder_round)
+            matches_schedule = MatchSchedule.objects.filter(
+                ladder_round=ladder_round)
             for each in matches_schedule:
                 each.delete()
             ladder_round.match_schedule = None
@@ -612,7 +703,8 @@ def setup_scheduling_for_round(request, round_id):
             return redirect(add_players_to_round, ladder_round.id)
         return redirect(setup_scheduling_for_round, ladder_round.id)
 
-    matches_schedule = MatchSchedule.objects.filter(ladder_round=ladder_round).order_by('day').order_by('time_slot')
+    matches_schedule = MatchSchedule.objects.filter(
+        ladder_round=ladder_round).order_by('day').order_by('time_slot')
 
     context = {
         'ladder_rounds': ladder_rounds,
@@ -626,11 +718,16 @@ def setup_scheduling_for_round(request, round_id):
 
 @permission_required('round.ladder.can_administrate_the_ladder')
 def admin_round_detail(request, round_id):
+    """
+    Sets up most of the details of a ladder round.
+    """
     ladder_round = LadderRound.objects.get(id=round_id)
     matches = Match.objects.filter(ladder_round=ladder_round)
     match_schedule = ladder_round.match_schedule
-    scheduled_matches = MatchSchedule.objects.filter(ladder_round=ladder_round).exclude(match__isnull=True)
-    ladder_rounds = list(LadderRound.objects.filter(ladder=ladder_round.ladder).order_by('start_date'))
+    scheduled_matches = MatchSchedule.objects.filter(
+        ladder_round=ladder_round).exclude(match__isnull=True)
+    ladder_rounds = list(LadderRound.objects.filter(
+        ladder=ladder_round.ladder).order_by('start_date'))
     round_number = ladder_rounds.index(ladder_round) + 1
     context = {
         'ladder_round': ladder_round,
@@ -646,17 +743,24 @@ def admin_round_detail(request, round_id):
 
 @permission_required('round.ladder.can_administrate_the_ladder')
 def create_ladder_round(request, ladder_id):
+    """
+    Create a ladder round
+    """
     ladder = Ladder.objects.get(id=ladder_id)
     ladder_rounds = LadderRound.objects.filter(ladder=ladder)
-    last_round = LadderRound.objects.filter(ladder=ladder).order_by('-end_date').first()
+    last_round = LadderRound.objects.filter(
+        ladder=ladder).order_by('-end_date').first()
     if request.POST:
         # todo validate the dates
-        start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d').date()
-        end_date = datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d').date()
+        start_date = datetime.strptime(
+            request.POST.get('start_date'), '%Y-%m-%d').date()
+        end_date = datetime.strptime(
+            request.POST.get('end_date'), '%Y-%m-%d').date()
         try:
-            ladder_round = validate_and_create_ladder_round(ladder, start_date, end_date)
-        except ValueError as e:
-            messages.error(request, f'{e}')
+            ladder_round = validate_and_create_ladder_round(
+                ladder, start_date, end_date)
+        except ValueError as error:
+            messages.error(request, f'{error}')
         else:
             ladder_round.save()
             if request.POST.get('setup_schedule'):
@@ -671,6 +775,9 @@ def create_ladder_round(request, ladder_id):
 
 
 def save_scheduled_match_view(request, round_id):
+    """
+    Save scheduled match
+    """
     response_data = {}
     ladder_round = LadderRound.objects.get(id=round_id)
     if request.POST:
@@ -679,14 +786,15 @@ def save_scheduled_match_view(request, round_id):
             match_time = request.POST.get("match_time")
             match_day = request.POST.get("match_day")
             court = request.POST.get("court")
-            #todo:  I hate this and need to find another way to do this
+            # todo:  I hate this and need to find another way to do this
             try:
                 scheduled_match = MatchSchedule.objects.get(match_id=match_id)
                 scheduled_match.delete()
             except ObjectDoesNotExist:
                 pass
             finally:
-                scheduled_match = save_scheduled_match(ladder_round, match_id, match_day, court, match_time)
+                scheduled_match = save_scheduled_match(
+                    ladder_round, match_id, match_day, court, match_time)
             response_data['match_schedule_id'] = scheduled_match.id
             response_data['match_id'] = match_id
             return JsonResponse(response_data)
@@ -704,6 +812,9 @@ def save_scheduled_match_view(request, round_id):
 
 
 def ladder_setup_wizard(request):
+    """
+    View to support the ladder setup wizzard
+    """
     if request.POST:
         # Ladder details
         ladder_name = request.POST.get('ladder_name')
@@ -712,11 +823,11 @@ def ladder_setup_wizard(request):
         number_of_rounds = request.POST.get('number_of_rounds')
 
         try:
-            ladder = validate_and_create_ladder(ladder_name, ladder_start_date, ladder_end_date)
+            ladder = validate_and_create_ladder(
+                ladder_name, ladder_start_date, ladder_end_date)
         except ValueError as error:
             messages.error(request, f'The ladder is invalid: {error}')
             return redirect(ladder_setup_wizard)
-
 
         # Calculation Engine
         # todo: Implement the calculation selection.  Only one is currently implemented.
@@ -724,7 +835,8 @@ def ladder_setup_wizard(request):
         # Rounds details
 
         if request.POST.get('round_start_date'):
-            first_round_start_date = datetime.strptime(request.POST.get('round_start_date'), '%Y-%m-%d').date()
+            first_round_start_date = datetime.strptime(
+                request.POST.get('round_start_date'), '%Y-%m-%d').date()
         else:
             first_round_start_date = ladder.start_date
         duration_of_round = request.POST.get('duration_of_round')
@@ -734,7 +846,8 @@ def ladder_setup_wizard(request):
         # create the rounds setting up the start and end dates
 
         try:
-            ladder_rounds = validate_and_create_ladder_rounds(ladder, number_of_rounds, first_round_start_date, duration_of_round)
+            ladder_rounds = validate_and_create_ladder_rounds(
+                ladder, number_of_rounds, first_round_start_date, duration_of_round)
         except ValueError as error:
             messages.error(request, f'Ladder rounds are invalid: {error}')
             return redirect(ladder_setup_wizard)
@@ -750,7 +863,8 @@ def ladder_setup_wizard(request):
             number_of_games = request.POST.get('number_of_games')
 
             for each_round in ladder_rounds:
-                match_days_of_the_year = setup_match_days(each_round.start_date, match_days)
+                match_days_of_the_year = setup_match_days(
+                    each_round.start_date, match_days)
                 round_match_schedule = generate_round_match_schedule(match_days_of_the_year,
                                                                      number_of_courts,
                                                                      start_time,
@@ -766,7 +880,8 @@ def ladder_setup_wizard(request):
             for each_round in ladder_rounds:
                 for player in players_for_round:
                     add_player_to_round(each_round.id, player)
-                # Round status is set to open when players are added.  This allows for players to manage themselves
+                # Round status is set to open when players are added.
+                # This allows for players to manage themselves
                 each_round.status = each_round.OPEN
                 each_round.save()
 
@@ -780,6 +895,9 @@ def ladder_setup_wizard(request):
 
 
 def download_match_schedule(request, round_id):
+    """
+    Download the match schedule
+    """
     ladder_round = LadderRound.objects.get(id=round_id)
     filename = 'round_match_schedule.pdf'
     pdf_file = get_pdf_match_schedule(ladder_round)
