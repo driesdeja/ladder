@@ -6,7 +6,8 @@
 
         <form method="post" action="{% url 'update-ranking' ladder_round.id %}">
             {% csrf_token %}
-            <input type="date" name="eff_date">
+            <label for="eff_date">Ranking Effective Date ({{ ladder_round.end_date|date:'d m Y' }})</label>
+            <input type="date" name="eff_date" value="{{ ladder_round.end_date|date:'d m Y' }}">
             <input type="submit" name="submit_to_master" value="Update Master List"/>
         </form>
         <table>

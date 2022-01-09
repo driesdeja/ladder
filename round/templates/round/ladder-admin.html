@@ -5,26 +5,14 @@
         <div class="row">
             <div class="col-4">
                 <div class="panel-heading">Ladder Admin</div>
-                <div class="panel-body">{{ ladder.start_date }} - {{ ladder.end_date }}</div>
+            </div>
+            <div>
+                <a href="{% url 'ladder-setup-wizard' %}" class="button">Ladder Setup Wizard</a>
             </div>
         </div>
     </div>
     <div class="row">
-        <div class="col-md-3">
-            <a href="{% url 'ladder-setup-wizard' %}" class="button">Ladder Setup Wizard</a>
-            <form method="POST">
-                {% csrf_token %}
-                <div class="form-group">
-                    {{ form|crispy }}
-                </div>
-                <div class="form-group">
-                    <input id="datepicker" width="276"/>
-
-                    <input class="btn btn-outline-info" type="submit" value="Save">
-                </div>
-            </form>
-        </div>
-        <div class="col-md-9">
+        <div class="col-md-12">
             <div class="info-header">
                 <p>All Ladders:</p>
             </div>

@@ -48,7 +48,11 @@ def edit_player(request, player_id):
             player.first_name = form.cleaned_data.get('first_name')
             player.contact_number = form.cleaned_data.get('contact_number')
             if player.ranking != form.cleaned_data.get('ranking'):
-                update_ladder_ranking(player, 'change', form.cleaned_data.get('ranking'))
+                update_ladder_ranking(player,
+                                    'change',
+                                    form.cleaned_data.get('ranking'),
+                                    form.cleaned_data.get('effective_date')
+                                    )
             player.status = form.cleaned_data.get('status')
             player.ranking = form.cleaned_data.get('ranking')
             player.save()
@@ -72,7 +76,11 @@ def create_player(request):
             new_player.last_name = form.cleaned_data.get('last_name')
             new_player.contact_number = form.cleaned_data.get('contact_number')
             # new_player.save()
-            update_ladder_ranking(new_player, 'add', form.cleaned_data.get('ranking'))
+            update_ladder_ranking(new_player,
+                                'add',
+                                form.cleaned_data.get('ranking'),
+                                form.cleaned_data.get('effective_date')
+                                )
             form = PlayerForm()
     context = {
         'form': form
@@ -123,7 +131,7 @@ def export_players(request):
     """View to export players"""
     filename = 'players.csv'
     file_to_download = get_file_of_players()
-    with open(file_to_download) as file_to_download:
+    with open(file_to_download, encoding=str) as file_to_download:
         response = HttpResponse(file_to_download, content_type='application/txt')
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
     return response

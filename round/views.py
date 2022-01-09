@@ -532,7 +532,7 @@ def edit_match(request, round_id, match_id):
 @permission_required('round.ladder.can_administrate_the_ladder')
 def update_players_ranking(request, round_id):
     """
-    Manually update a players ranking
+    Update rankings after the calculation of the match results
     """
     ladder_round = LadderRound.objects.get(id=round_id)
     matches = Match.objects.filter(ladder_round=ladder_round)

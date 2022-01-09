@@ -7,6 +7,10 @@
     {% if ladder_round.status == 2 %}
         <form method="post" action="{% url 'capture-results' ladder_round.id %}">
             <input class="btn" type="submit" name="re-open-round" value="Re-Open-Round"/>
+            Apply Date Played to all games (can be manually changed)
+            <input type="date" name="default-played-date" id="default-played-date">
+            <input type="button" name="apply-default-date" id="apply-default-date" value="Apply">
+
             <div class="draw-container">
 
 
@@ -93,8 +97,7 @@
                             </td>
                             <td>
                                 {% if match.result == match.NOT_PLAYED %}
-                                    <input type="date" name="match[{{ match.id }}][date-played]"
-                                           value={% now "SHORT_DATE_FORMAT" %}>
+                                    <input type="date" name="match[{{ match.id }}][date-played]">
                                 {% else %}
                                     {{ match.date_played|date:'d-m-Y' }}
                                 {% endif %}
@@ -126,5 +129,23 @@
             </div>
         </form>
         </div>
+
     {% endif %}
 {% endblock content %}
+{% block javascript %}
+    <script type="application/javascript">
+        $("#apply-default-date").click(
+            function () {
+                $('input[name^="match"]').each(function(){
+                    if ( $(this).is('[type="date"]')){
+                        $(this).val($('#default-played-date').val());
+
+                    }
+                })
+            }
+        )
+    </script>
+
+{% endblock javascript %}
+
+<!--<input type="date" name="match[{{ match.id }}][date-played]">-->
