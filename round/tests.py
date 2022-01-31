@@ -10,7 +10,7 @@ from .models import LadderRound
 from .models import Match
 from .models import RoundMatchSchedule
 from .models import MatchSchedule
-from .utils import add_player_to_round
+from .utils import add_player_to_round, generate_rankings_after_round
 from .utils import ensure_player_not_already_in_round
 from .utils import ranking_change
 from .utils import update_ladder_ranking
@@ -282,9 +282,10 @@ class RoundUtilsTestCase(TestCase):
         # Peter won 3 games in his match, Position on ladder decreases by 6
         peter = Player.objects.get(first_name='Peter')
         new_ranking = peter.ranking + ranking_change(3)
+        initial_ranking = peter.ranking
         update_ladder_ranking(peter, 'change', new_ranking, datetime.now())
         print(f'Player {peter}, won which implies that his ranking should be {new_ranking}, '+
-            'and his ranking is {peter.ranking} and it was {initial_ranking}')
+            f'and his ranking is {peter.ranking} and it was {initial_ranking}')
         players = Player.objects.filter(status=Player.ACTIVE).order_by('ranking')
         print(players)
         self.assertEqual(peter.ranking, 1)
@@ -324,10 +325,25 @@ class RoundUtilsTestCase(TestCase):
         tinker = Player.objects.filter(first_name='Tinker').first()
         update_ladder_ranking(tinker, 'change', len(players) + 100, datetime.now())
 
+
+
         # Eyeball validation of the rules
         # players = Player.objects.all().order_by('ranking')
         # for player in players:
         #     print(f'{player.first_name} ranking: {player.ranking}')
+
+    def test_generate_rankings_after_round(self):
+        """Test the generation of the rankings after a round has been played"""
+        matches = Match.objects.filter(date_played=datetime.now())
+        players = Player.objects.filter(status=Player.ACTIVE).order_by('-ranking')
+        for player in players:
+            print(f'{player.first_name}, {player.last_name}, {player.ranking}')
+        for match in matches:
+            print(f'{match.player1}: {match.games_for_player1} vs {match.games_for_player2}: {match.player2}, {match.date_played}')
+
+        print(f'Number of players: {len(players)}')
+        generate_rankings_after_round(matches, datetime.now())
+
 
     def test_get_full_ladder_details(self):
         """

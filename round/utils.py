@@ -1,6 +1,7 @@
 """
 Utility class for the Round
 """
+from collections import OrderedDict
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
@@ -154,9 +155,10 @@ def update_ladder_ranking(player, action, new_ranking, eff_date):
         if new_ranking <= 0:
             new_ranking = 1
         if player.ranking > new_ranking:
-            players = Player.objects.filter(status=Player.ACTIVE).filter(
-                ranking__gte=new_ranking).filter(
-                ranking__lt=player.ranking)
+            players = Player.objects\
+                .filter(status=Player.ACTIVE)\
+                .filter(ranking__gte=new_ranking)\
+                .filter(ranking__lt=player.ranking)
             for each_player in players:
                 each_player.ranking = each_player.ranking + 1
                 each_player.save()
@@ -192,13 +194,13 @@ def update_ladder_ranking(player, action, new_ranking, eff_date):
 def ranking_change(games_won):
     """ Ranking Change """
     if games_won == 0:
-        player_ranking_change = 1
+        player_ranking_change = -1
     elif games_won == 1:
         player_ranking_change = 0
     elif games_won == 2:
-        player_ranking_change = -2
+        player_ranking_change = 2
     elif games_won == 3:
-        player_ranking_change = -6
+        player_ranking_change = 6
     else:
         raise ValueError(f'Games won must be between 0 and 3 and not {games_won}!')
     return player_ranking_change
@@ -229,7 +231,7 @@ def calculate_change_in_ranking(matches):
 
 
 def activate_and_invalidate_ranking(ranking, eff_to):
-    """Acivate new ranking and deactivate the previous ranking."""
+    """Activate new ranking and deactivate the previous ranking."""
     try:
         if not isinstance(eff_to, datetime):
             eff_to = datetime.now()
@@ -277,6 +279,42 @@ def compare_and_update_player_with_playerranking(reason_for_change, effective_da
             player_ranking.ranking = player.ranking
             player_ranking.save()
     return True
+
+
+def generate_rankings_after_round(matches, effective_date):
+    """ The new ranking list is calculated by adding the ranking change to the inverse of the current ranking
+    For example if there are 90 active players then the worst ranked player is assigned a number of 1 and the
+    highest ranked player get the rank of 90.
+    The change is ranking (based on games won) is added to this number.  So if the top ranked player (90) wins three
+    games then his new total will be 90 + 6 = 96, should he have won no games then his relative total ranking will be
+    90 + 1 = 91
+
+    Once this is calculated for all of the players the list is ordered from big to small and the new actual ranking is
+    determined by position in the list.
+    """
+    new_ranking_list = calculate_change_in_ranking(matches)
+    new_ranking_list = (sorted(new_ranking_list, key=lambda x: x['player_current_ranking'], reverse=True))
+    all_players = Player.objects.filter(status=Player.ACTIVE).order_by('-ranking')
+    players_for_ranking = []
+    for index, each_player in enumerate(all_players):
+        player = {
+            'player': each_player,
+            'reverse_position': index
+        }
+        players_for_ranking.append(player)
+    print(players_for_ranking)
+    number_of_active_players = Player.objects.filter(status=Player.ACTIVE).order_by('-ranking').count()
+    ranked_list = []
+    for each_player in players_for_ranking: #all players
+        for ranking_player in new_ranking_list: #those who played
+            if each_player['player'].id == ranking_player['player_id']:
+                new_ranking_value = each_player['reverse_position'] + ranking_player['player_ranking_change']
+                each_player['new_ranking_value'] = new_ranking_value
+                print('Found')
+    print(players_for_ranking)
+    print(sorted(players_for_ranking, key=lambda x: x['new_ranking_value'], reverse=True))
+
+
 
 
 def matches_player_played_in(player, ladder):

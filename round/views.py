@@ -537,6 +537,7 @@ def update_players_ranking(request, round_id):
     ladder_round = LadderRound.objects.get(id=round_id)
     matches = Match.objects.filter(ladder_round=ladder_round)
     new_ranking_list = calculate_change_in_ranking(matches)
+
     if request.POST:
         eff_date = request.POST.get("eff_date")
         for each_player in new_ranking_list:
