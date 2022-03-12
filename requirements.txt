@@ -6,7 +6,7 @@ django==3.2.7
 isort==5.9.3
 lazy-object-proxy==1.6.0
 mccabe==0.6.1
-pillow==8.3.2
+pillow==9.0.1
 platformdirs==2.3.0
 psycopg2==2.9.1
 pylint-django==2.4.4
