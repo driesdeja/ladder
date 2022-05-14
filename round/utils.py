@@ -115,7 +115,11 @@ def remove_player_from_round(round_id, player):
 
 
 def update_ladder_ranking(player, action, new_ranking, eff_date):
-    """ his action only occurs when a player is added for the first time. """
+    """ his action only occurs when a player is added for the first time.
+        This method is used when the rankings are updated from the the web admin area.
+        It should not be used when the ladder results is calculated because *most people's ranking will change
+        when a ladder round was completed.
+    """
     if action == 'add':
         # If the new player's ranking in 0 then we add him to the end of the ranking list)
         if new_ranking == 0:
@@ -151,6 +155,8 @@ def update_ladder_ranking(player, action, new_ranking, eff_date):
         for each_player in players:
             each_player.ranking = each_player.ranking - 1
             each_player.save()
+
+    # This should be used to change a single person's ranking - usually a manual adjustment by an administrator.
     if action == 'change':
         if new_ranking <= 0:
             new_ranking = 1
@@ -252,7 +258,8 @@ def activate_and_invalidate_ranking(ranking, eff_to):
 
 
 def compare_and_update_player_with_playerranking(reason_for_change, effective_date):
-    """Compare and update player with the player ranking."""
+    """Method is used to update PlayerRanking in batch mode where it compares all the active Players Ranking with the
+    PlayerRankind and then updates the PlayerRanking accordingly."""
     players = Player.objects.filter(status=Player.ACTIVE)
     for player in players:
         player_ranking = PlayerRanking.objects.filter(player=player, eff_to__isnull=True).first()
@@ -281,7 +288,8 @@ def compare_and_update_player_with_playerranking(reason_for_change, effective_da
     return True
 
 
-def generate_rankings_after_round(matches, effective_date):
+
+def generate_rankings_after_round(matches, effective_date, reason_for_change):
     """ The new ranking list is calculated by adding the ranking change to the inverse of the current ranking
     For example if there are 90 active players then the worst ranked player is assigned a number of 1 and the
     highest ranked player get the rank of 90.
@@ -302,7 +310,7 @@ def generate_rankings_after_round(matches, effective_date):
             'reverse_position': index
         }
         players_for_ranking.append(player)
-    print(players_for_ranking)
+
     number_of_active_players = Player.objects.filter(status=Player.ACTIVE).order_by('-ranking').count()
     ranked_list = []
     for each_player in players_for_ranking: #all players
@@ -310,9 +318,19 @@ def generate_rankings_after_round(matches, effective_date):
             if each_player['player'].id == ranking_player['player_id']:
                 new_ranking_value = each_player['reverse_position'] + ranking_player['player_ranking_change']
                 each_player['new_ranking_value'] = new_ranking_value
-                print('Found')
+                print(f'{each_player["player"].first_name}: {new_ranking_value}')
+    players_for_ranking = (sorted(players_for_ranking, key=lambda x: x['new_ranking_value'], reverse=True))
     print(players_for_ranking)
     print(sorted(players_for_ranking, key=lambda x: x['new_ranking_value'], reverse=True))
+    # Set the new rankings for the players
+    # this is based on the position in the list
+    for index, player in enumerate(players_for_ranking):
+        print(f'index {index}: {player["player"]}: current ranking: {player["player"].ranking}')
+        player['player'].ranking = index + 1
+        player['player'].save()
+    compare_and_update_player_with_playerranking(reason_for_change, effective_date)
+
+
 
 
 

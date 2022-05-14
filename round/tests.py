@@ -342,8 +342,10 @@ class RoundUtilsTestCase(TestCase):
             print(f'{match.player1}: {match.games_for_player1} vs {match.games_for_player2}: {match.player2}, {match.date_played}')
 
         print(f'Number of players: {len(players)}')
-        generate_rankings_after_round(matches, datetime.now())
-
+        generate_rankings_after_round(matches, datetime.now(), f'Test cases round')
+        players = Player.objects.filter(status=Player.ACTIVE).order_by('ranking')
+        for player in players:
+            print(f'{player.first_name}, {player.last_name}, {player.ranking}')
 
     def test_get_full_ladder_details(self):
         """

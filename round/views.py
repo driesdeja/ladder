@@ -14,7 +14,7 @@ from django.http import HttpResponse
 from players.models import Player
 from players.views import list_players
 from round.utils import calculate_change_in_ranking, \
-    update_ladder_ranking, matches_player_played_in, date_range
+    update_ladder_ranking, matches_player_played_in, date_range, generate_rankings_after_round
 from .models import PlayersInLadderRound
 from .models import LadderRound
 from .models import Match
@@ -540,22 +540,10 @@ def update_players_ranking(request, round_id):
 
     if request.POST:
         eff_date = request.POST.get("eff_date")
-        for each_player in new_ranking_list:
-            player = Player.objects.get(id=each_player['player_id'])
-            new_ranking = player.ranking + \
-                int(each_player['player_ranking_change'])
-            update_ladder_ranking(player, 'change', new_ranking, eff_date)
+        generate_rankings_after_round(matches, ladder_round.end_date, f'Ladder round {ladder_round.start_date} updated on {eff_date}')
         ladder_round.status = ladder_round.COMPLETED
         ladder_round.save()
-        # Need to update the ranking change log once all the movements for the rounds has been
-        # completed.
-        # The way to do this is to loop through the rankings in the player list and compare
-        # that with the active
-        # SPlayerRanking for the player
-        #
-        compare_and_update_player_with_playerranking(
-            f'Ladder round {ladder_round.start_date} updated on {eff_date}', ladder_round.end_date)
-
+        
         return redirect(list_players)
 
     context = {
