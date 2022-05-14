@@ -39,6 +39,12 @@
             {{ form.ranking.errors }}
             <label for="id_ranking">Ranking</label>
             <input type="number" name="ranking" value="{{ player.ranking }}" required id="id_ranking">
+            <div class="input-group date" data-provide="datepicker">
+                <input type="text" name="eff_date" id="eff_date" class="form-control">
+                <div class="input-group-addon">
+                    <span class="glyphicon glyphicon-th"></span>
+                </div>
+            </div>
         </div>
 
         <input type="hidden" name="player_id" value="{{ player.id }}"/>

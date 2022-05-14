@@ -1,3 +1,6 @@
+"""
+Path to view mapping for the players module
+"""
 from django.urls import path
 from . import views
 
